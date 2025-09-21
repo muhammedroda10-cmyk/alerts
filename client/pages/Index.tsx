@@ -149,7 +149,8 @@ export default function Index() {
 
   const [rawTrips, setRawTrips] = useState("");
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [hiddenBuyers, setHiddenBuyers] = useState<Record<string, boolean>>({});
+  const [hiddenGroups, setHiddenGroups] = useState<Record<string, boolean>>({});
+  const [groupBy, setGroupBy] = useState<"buyer" | "supplier">("buyer");
 
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
@@ -230,33 +231,34 @@ export default function Index() {
   const importTrips = () => {
     const parsed = parseTrips(rawTrips);
     setTrips(parsed);
-    setHiddenBuyers({});
+    setHiddenGroups({});
     toast({ title: "تم الاستيراد", description: `${parsed.length} رحلة` });
   };
 
-  const matchedByBuyer = useMemo(() => {
+  const matchedByGroup = useMemo(() => {
     const map = new Map<string, string[]>();
     for (const t of trips) {
       if (!t.flightNumber) continue;
       if (t.flightNumber.toString().trim() !== flightNumber.toString().trim()) continue;
-      const buyerKey = t.buyer.trim();
-      const list = map.get(buyerKey) ?? [];
+      const keyRaw = groupBy === "supplier" ? (t.supplier ?? "غير معروف") : t.buyer;
+      const key = String(keyRaw || "غير معروف").trim();
+      const list = map.get(key) ?? [];
       if (!list.includes(t.pnr)) list.push(t.pnr);
-      map.set(buyerKey, list);
+      map.set(key, list);
     }
     return map;
-  }, [trips, flightNumber]);
+  }, [trips, flightNumber, groupBy]);
 
-  const buyerNotifications = useMemo(() => {
-    return Array.from(matchedByBuyer.entries()).map(([buyerName, pnrs]) => {
+  const groupedNotifications = useMemo(() => {
+    return Array.from(matchedByGroup.entries()).map(([groupName, pnrs]) => {
       const body = [
         basePreview,
         ...pnrs.map((p) => `PNR: ${p}`),
         supplier,
       ].join("\n");
-      return { buyerName, pnrs, body };
+      return { groupName, pnrs, body };
     });
-  }, [matchedByBuyer, basePreview, supplier]);
+  }, [matchedByGroup, basePreview, supplier]);
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
@@ -347,29 +349,41 @@ export default function Index() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>التبليغات حسب المشتري</CardTitle>
+          <CardHeader className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-4">
+              <CardTitle>التبليغات حسب {groupBy === "buyer" ? "المشتري" : "السبلاير"}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="groupBy">تجميع حسب</Label>
+                <Select value={groupBy} onValueChange={(v: any) => setGroupBy(v)}>
+                  <SelectTrigger id="groupBy" className="w-[180px]"><SelectValue placeholder="اختر" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="buyer">المشتري</SelectItem>
+                    <SelectItem value="supplier">السبلاير</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            {buyerNotifications.length === 0 ? (
+            {groupedNotifications.length === 0 ? (
               <p className="text-muted-foreground">لا توجد نتائج. قم باستيراد بيانات رحلات ثم أدخل رقم الرحلة للمطابقة.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {buyerNotifications.map((bn) => (
-                  <Card key={bn.buyerName} className={hiddenBuyers[bn.buyerName] ? "opacity-50" : undefined}>
+                {groupedNotifications.map((bn) => (
+                  <Card key={bn.groupName} className={hiddenGroups[bn.groupName] ? "opacity-50" : undefined}>
                     <CardHeader>
-                      <CardTitle className="text-base">{bn.buyerName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
+                      <CardTitle className="text-base">{bn.groupName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Textarea readOnly value={bn.body} className="min-h-[220px]" />
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
-                      <Button variant="secondary" onClick={() => setHiddenBuyers((m) => ({ ...m, [bn.buyerName]: !m[bn.buyerName] }))}>
-                        {hiddenBuyers[bn.buyerName] ? "إظهار" : "إخفاء"}
+                      <Button variant="secondary" onClick={() => setHiddenGroups((m) => ({ ...m, [bn.groupName]: !m[bn.groupName] }))}>
+                        {hiddenGroups[bn.groupName] ? "إظهار" : "إخفاء"}
                       </Button>
                       <div className="flex gap-2">
                         <Button onClick={() => copy(bn.body)}>نسخ</Button>
-                        <Button variant="outline" onClick={() => save(bn.body, `${bn.buyerName} | ${origin}-${destination} ${flightNumber}`)}>حفظ</Button>
+                        <Button variant="outline" onClick={() => save(bn.body, `${bn.groupName} | ${origin}-${destination} ${flightNumber}`)}>حفظ</Button>
                       </div>
                     </CardFooter>
                   </Card>
