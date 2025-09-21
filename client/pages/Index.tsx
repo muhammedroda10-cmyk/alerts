@@ -15,6 +15,17 @@ interface NotificationItem {
   summary: string;
 }
 
+interface Trip {
+  buyer: string;
+  pnr: string;
+  flightNumber: string;
+  date?: string;
+  origin?: string;
+  destination?: string;
+  airline?: string;
+  supplier?: string;
+}
+
 function addDays(dateStr: string, days: number) {
   const d = new Date(dateStr);
   d.setDate(d.getDate() + days);
@@ -35,6 +46,52 @@ function formatDateYMD(dateStr: string) {
   try { return format(new Date(dateStr), "yyyy/MM/dd"); } catch { return dateStr; }
 }
 
+function parseTrips(raw: string): Trip[] {
+  const text = raw.trim();
+  if (!text) return [];
+  try {
+    const json = JSON.parse(text);
+    if (Array.isArray(json)) {
+      return json.map((r: any) => ({
+        buyer: String(r.buyer ?? r.customer ?? r.client ?? "").trim(),
+        pnr: String(r.pnr ?? r.PNR ?? r.booking ?? "").trim(),
+        flightNumber: String(r.flightNumber ?? r.flight_no ?? r.flight ?? "").trim(),
+        date: r.date ?? r.flightDate,
+        origin: r.origin ?? r.from,
+        destination: r.destination ?? r.to,
+        airline: r.airline,
+        supplier: r.supplier,
+      })).filter((t) => t.buyer && t.pnr && t.flightNumber);
+    }
+  } catch {}
+
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return [];
+  const headers = lines[0].split(",").map((h) => h.trim());
+  const get = (row: Record<string,string>, ...keys: string[]) => {
+    for (const k of keys) if (row[k] != null) return row[k];
+    return "";
+  };
+  const out: Trip[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",");
+    const row: Record<string,string> = {};
+    headers.forEach((h, idx) => (row[h] = (cols[idx] ?? "").trim()));
+    const trip: Trip = {
+      buyer: get(row, "buyer", "customer", "client"),
+      pnr: get(row, "pnr", "PNR", "booking"),
+      flightNumber: get(row, "flightNumber", "flight", "flight_no"),
+      date: get(row, "date", "flightDate"),
+      origin: get(row, "origin", "from"),
+      destination: get(row, "destination", "to"),
+      airline: get(row, "airline"),
+      supplier: get(row, "supplier"),
+    };
+    if (trip.buyer && trip.pnr && trip.flightNumber) out.push(trip);
+  }
+  return out;
+}
+
 export default function Index() {
   const [airline, setAirline] = useState("Aseman Airlines");
   const [flightNumber, setFlightNumber] = useState("6568");
@@ -43,17 +100,19 @@ export default function Index() {
   const [destination, setDestination] = useState("BGW");
   const [oldTime, setOldTime] = useState("19:30");
   const [newTime, setNewTime] = useState("01:00");
-  const [pnr, setPnr] = useState("J5MI43");
   const [supplier, setSupplier] = useState("FLY4ALL");
-  const [buyer, setBuyer] = useState("");
   const [type, setType] = useState("delay");
+
+  const [rawTrips, setRawTrips] = useState("");
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [hiddenBuyers, setHiddenBuyers] = useState<Record<string, boolean>>({});
 
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
     return toMinutes(newTime) < toMinutes(oldTime);
   }, [oldTime, newTime]);
 
-  const preview = useMemo(() => {
+  const basePreview = useMemo(() => {
     const route = `${origin} ${destination}`.trim();
     const dateStr = formatDateYMD(date);
     const newDateStr = isNextDay ? format(addDays(date, 1), "yyyy/MM/dd") : undefined;
@@ -67,9 +126,7 @@ export default function Index() {
         `الوقت الجديد: ${newTime} ${periodLabel(newTime)}${isNextDay ? ` (في اليوم التالي ${newDateStr})` : ""}`,
         "يرجى ابلاغ المسافرين لطفا",
         "",
-        pnr ? `PNR: ${pnr}` : "",
-        supplier,
-      ].filter(Boolean).join("\n");
+      ].join("\n");
     }
 
     if (type === "cancel") {
@@ -79,55 +136,94 @@ export default function Index() {
         `رقم الرحلة ${flightNumber}`,
         "يرجى التواصل لترتيب البدائل المناسبة",
         "",
-        pnr ? `PNR: ${pnr}` : "",
-        supplier,
-      ].filter(Boolean).join("\n");
+      ].join("\n");
     }
 
     return "";
-  }, [airline, buyer, date, destination, flightNumber, isNextDay, newTime, oldTime, origin, pnr, supplier, type]);
+  }, [airline, date, destination, flightNumber, isNextDay, newTime, oldTime, origin, type]);
 
-  const [history, setHistory] = useState<NotificationItem[]>([]);
+  const previewSingle = useMemo(() => {
+    return [basePreview, supplier].filter(Boolean).join("\n");
+  }, [basePreview, supplier]);
 
   useEffect(() => {
     const raw = localStorage.getItem("alerts-history");
     if (raw) setHistory(JSON.parse(raw));
+    const savedTrips = localStorage.getItem("alerts-trips");
+    if (savedTrips) setTrips(JSON.parse(savedTrips));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("alerts-trips", JSON.stringify(trips));
+  }, [trips]);
+
+  const [history, setHistory] = useState<NotificationItem[]>([]);
 
   useEffect(() => {
     localStorage.setItem("alerts-history", JSON.stringify(history));
   }, [history]);
 
-  const copy = async () => {
+  const copy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(preview);
-      toast({ title: "تم النسخ", description: "نص التبليغ في الحافظة" });
+      await navigator.clipboard.writeText(text);
+      toast({ title: "تم النسخ", description: "النص في الحافظة" });
     } catch {
-      toast({ title: "تعذر ا��نسخ", description: "يرجى النسخ يدويًا" });
+      toast({ title: "تعذر النسخ", description: "يرجى النسخ يدويًا" });
     }
   };
 
-  const save = () => {
+  const save = (message: string, summary: string) => {
     const item: NotificationItem = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
-      message: preview,
-      summary: `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`,
+      message,
+      summary,
     };
-    setHistory((prev) => [item, ...prev].slice(0, 50));
-    toast({ title: "تم الحفظ", description: "أُضيف التبليغ إلى السجل" });
+    setHistory((prev) => [item, ...prev].slice(0, 100));
+    toast({ title: "تم الحفظ", description: "أُضيف إلى السجل" });
   };
+
+  const importTrips = () => {
+    const parsed = parseTrips(rawTrips);
+    setTrips(parsed);
+    setHiddenBuyers({});
+    toast({ title: "تم الاستيراد", description: `${parsed.length} رحلة` });
+  };
+
+  const matchedByBuyer = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const t of trips) {
+      if (!t.flightNumber) continue;
+      if (t.flightNumber.toString().trim() !== flightNumber.toString().trim()) continue;
+      const buyerKey = t.buyer.trim();
+      const list = map.get(buyerKey) ?? [];
+      if (!list.includes(t.pnr)) list.push(t.pnr);
+      map.set(buyerKey, list);
+    }
+    return map;
+  }, [trips, flightNumber]);
+
+  const buyerNotifications = useMemo(() => {
+    return Array.from(matchedByBuyer.entries()).map(([buyerName, pnrs]) => {
+      const body = [
+        basePreview,
+        ...pnrs.map((p) => `PNR: ${p}`),
+        supplier,
+      ].join("\n");
+      return { buyerName, pnrs, body };
+    });
+  }, [matchedByBuyer, basePreview, supplier]);
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto py-8">
-        <div className="mb-8">
+      <div className="container mx-auto py-8 space-y-8">
+        <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">أنشئ تبليغات دقيقة بحسب بيانات الرحلة والتغييرات.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب المشتري اعتمادًا عل�� PNR المطابقة لرقم الرحلة.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+          <Card className="xl:col-span-2">
             <CardHeader>
               <CardTitle>بيانات الرحلة</CardTitle>
             </CardHeader>
@@ -135,21 +231,21 @@ export default function Index() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="origin">الروت - من</Label>
-                  <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="مثال: IKA" />
+                  <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="destination">الروت - إلى</Label>
-                  <Input id="destination" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="مثال: BGW" />
+                  <Input id="destination" value={destination} onChange={(e) => setDestination(e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="airline">شركة الطيران</Label>
-                  <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} placeholder="مثال: Aseman Airlines" />
+                  <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
                 <div>
                   <Label htmlFor="flightNumber">رقم الرحلة</Label>
-                  <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} placeholder="مثال: 6568" />
+                  <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -180,45 +276,67 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="pnr">PNR</Label>
-                  <Input id="pnr" value={pnr} onChange={(e) => setPnr(e.target.value)} placeholder="مثال: J5MI43" />
-                </div>
-                <div>
-                  <Label htmlFor="buyer">المشتري</Label>
-                  <Input id="buyer" value={buyer} onChange={(e) => setBuyer(e.target.value)} placeholder="اختياري" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
                   <Label htmlFor="supplier">السبلاير / التوقيع</Label>
-                  <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="مثال: FLY4ALL" />
+                  <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex gap-2 justify-end">
-              <Button onClick={save} variant="secondary">حفظ في السجل</Button>
-              <Button onClick={copy}>نسخ النص</Button>
+              <Button onClick={() => { save(previewSingle, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حفظ تبليغ عام</Button>
+              <Button variant="secondary" onClick={() => copy(previewSingle)}>نسخ تبليغ عام</Button>
             </CardFooter>
           </Card>
 
-          <Card className="border-primary/20">
+          <Card>
             <CardHeader>
-              <CardTitle>معاينة التبليغ</CardTitle>
+              <CardTitle>استيراد بيانات الرحلات (CSV/JSON)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Textarea className="min-h-[320px] leading-8" value={preview} readOnly />
-              <div className="text-xs text-muted-foreground">
-                تتم إضافة عبارة "(في اليوم التالي YYYY/MM/DD)" تلقائيًا إذا كان الوقت الجديد قبل القديم.
-              </div>
+              <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='حقول متوقعة: buyer,pnr,flightNumber,date,origin,destination,airline,supplier\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\nSara,XYZ999,7777\n\nأو JSON Array.' />
+              <div className="text-xs text-muted-foreground">سيتم التجميع حسب المشتري مع مطابقة رقم الرحلة المدخل أعلاه.</div>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button onClick={copy}>نسخ</Button>
+            <CardFooter className="flex justify-between gap-2">
+              <Button onClick={importTrips}>استيراد</Button>
+              <Button variant="secondary" onClick={() => { setRawTrips(""); setTrips([]); }}>إزالة البيانات</Button>
             </CardFooter>
           </Card>
         </div>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>التبليغات حسب المشتري</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {buyerNotifications.length === 0 ? (
+              <p className="text-muted-foreground">لا توجد نتائج. قم باستيراد بيانات رحلات ثم أدخل رقم الرحلة للمطابقة.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {buyerNotifications.map((bn) => (
+                  <Card key={bn.buyerName} className={hiddenBuyers[bn.buyerName] ? "opacity-50" : undefined}>
+                    <CardHeader>
+                      <CardTitle className="text-base">{bn.buyerName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea readOnly value={bn.body} className="min-h-[220px]" />
+                    </CardContent>
+                    <CardFooter className="flex justify-between gap-2">
+                      <Button variant="secondary" onClick={() => setHiddenBuyers((m) => ({ ...m, [bn.buyerName]: !m[bn.buyerName] }))}>
+                        {hiddenBuyers[bn.buyerName] ? "إظهار" : "إخفاء"}
+                      </Button>
+                      <div className="flex gap-2">
+                        <Button onClick={() => copy(bn.body)}>نسخ</Button>
+                        <Button variant="outline" onClick={() => save(bn.body, `${bn.buyerName} | ${origin}-${destination} ${flightNumber}`)}>حفظ</Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {history.length > 0 && (
-          <div className="mt-10">
+          <div>
             <h2 className="text-xl font-extrabold mb-3">سجل التبليغات</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {history.map((h) => (
