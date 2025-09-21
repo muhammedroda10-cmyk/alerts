@@ -17,6 +17,7 @@ interface NotificationItem {
 
 interface Trip {
   buyer: string;
+  title: string;
   pnr: string;
   flightNumber: string;
   date?: string;
@@ -69,9 +70,10 @@ function parseTrips(raw: string): Trip[] {
     if (arr) {
       const out: Trip[] = [];
       for (const r of arr) {
-        const buyer = String(
-          r.lp_reference ?? r.userSearchTitle ?? (r.usersName && r.usersName[0]) ?? r.buyer ?? r.customer ?? r.client ?? ""
+        const title = String(
+          r.userSearchTitle ?? r.lp_reference ?? (r.usersName && r.usersName[0]) ?? r.buyer ?? r.customer ?? r.client ?? ""
         ).trim();
+        const buyer = String(r.buyer ?? r.customer ?? r.client ?? title).trim();
         const pnr = String(r.pnr ?? r.PNR ?? r.booking ?? "").trim();
         const supplier = r.supplier;
 
@@ -80,6 +82,7 @@ function parseTrips(raw: string): Trip[] {
           for (const leg of legs) {
             const t: Trip = {
               buyer,
+              title,
               pnr,
               flightNumber: extractFlightNo(leg.airlineAndflightNumber),
               date: normalizeDate(leg.date),
@@ -93,6 +96,7 @@ function parseTrips(raw: string): Trip[] {
         } else {
           const t: Trip = {
             buyer,
+            title,
             pnr,
             flightNumber: extractFlightNo(r.flightNumber ?? r.flight_no ?? r.flight),
             date: normalizeDate(r.date ?? r.flightDate),
@@ -121,8 +125,10 @@ function parseTrips(raw: string): Trip[] {
     const cols = lines[i].split(",");
     const row: Record<string,string> = {};
     headers.forEach((h, idx) => (row[h] = (cols[idx] ?? "").trim()));
+    const title = get(row, "userSearchTitle", "lp_reference", "buyer", "customer", "client");
     const trip: Trip = {
-      buyer: get(row, "buyer", "customer", "client"),
+      buyer: get(row, "buyer", "customer", "client") || title,
+      title,
       pnr: get(row, "pnr", "PNR", "booking"),
       flightNumber: get(row, "flightNumber", "flight", "flight_no"),
       date: get(row, "date", "flightDate"),
@@ -150,7 +156,6 @@ export default function Index() {
   const [rawTrips, setRawTrips] = useState("");
   const [trips, setTrips] = useState<Trip[]>([]);
   const [hiddenGroups, setHiddenGroups] = useState<Record<string, boolean>>({});
-  const [groupBy, setGroupBy] = useState<"buyer" | "supplier">("buyer");
 
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
@@ -235,22 +240,21 @@ export default function Index() {
     toast({ title: "تم الاستيراد", description: `${parsed.length} رحلة` });
   };
 
-  const matchedByGroup = useMemo(() => {
+  const matchedByTitle = useMemo(() => {
     const map = new Map<string, string[]>();
     for (const t of trips) {
       if (!t.flightNumber) continue;
       if (t.flightNumber.toString().trim() !== flightNumber.toString().trim()) continue;
-      const keyRaw = groupBy === "supplier" ? (t.supplier ?? "غير معروف") : t.buyer;
-      const key = String(keyRaw || "غير معروف").trim();
+      const key = String(t.title || "غير معروف").trim();
       const list = map.get(key) ?? [];
       if (!list.includes(t.pnr)) list.push(t.pnr);
       map.set(key, list);
     }
     return map;
-  }, [trips, flightNumber, groupBy]);
+  }, [trips, flightNumber]);
 
   const groupedNotifications = useMemo(() => {
-    return Array.from(matchedByGroup.entries()).map(([groupName, pnrs]) => {
+    return Array.from(matchedByTitle.entries()).map(([groupName, pnrs]) => {
       const body = [
         basePreview,
         ...pnrs.map((p) => `PNR: ${p}`),
@@ -258,14 +262,14 @@ export default function Index() {
       ].join("\n");
       return { groupName, pnrs, body };
     });
-  }, [matchedByGroup, basePreview, supplier]);
+  }, [matchedByTitle, basePreview, supplier]);
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب المشتري اعتمادًا على PNR المطابقة لرقم الرحلة.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle اعتمادًا على PNR المطابقة لرقم الرحلة.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -339,7 +343,7 @@ export default function Index() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='يدعم الصيغ: CSV أو JSON.\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\n\nمثال JSON API:\n{ "data": [ { "lp_reference": "Ahmed", "pnr": "ABC123", "serviceDetails": { "legsInfo": [ { "airlineAndflightNumber": "EP 6568" } ] } } ] }' />
-              <div className="text-xs text-muted-foreground">سيتم التجميع حسب المشتري مع مطابقة رقم الرحلة المدخل أعلاه.</div>
+              <div className="text-xs text-muted-foreground">سيتم التجميع حسب userSearchTitle مع مطابقة رقم الرحلة المدخل أعلاه.</div>
             </CardContent>
             <CardFooter className="flex justify-between gap-2">
               <Button onClick={importTrips}>استيراد</Button>
@@ -349,20 +353,8 @@ export default function Index() {
         </div>
 
         <Card>
-          <CardHeader className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-4">
-              <CardTitle>التبليغات حسب {groupBy === "buyer" ? "المشتري" : "السبلاير"}</CardTitle>
-              <div className="flex items-center gap-2">
-                <Label htmlFor="groupBy">تجميع حسب</Label>
-                <Select value={groupBy} onValueChange={(v: any) => setGroupBy(v)}>
-                  <SelectTrigger id="groupBy" className="w-[180px]"><SelectValue placeholder="اختر" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="buyer">المشتري</SelectItem>
-                    <SelectItem value="supplier">السبلاير</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          <CardHeader>
+            <CardTitle>التبليغات حسب userSearchTitle</CardTitle>
           </CardHeader>
           <CardContent>
             {groupedNotifications.length === 0 ? (
