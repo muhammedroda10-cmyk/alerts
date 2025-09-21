@@ -49,22 +49,66 @@ function formatDateYMD(dateStr: string) {
 function parseTrips(raw: string): Trip[] {
   const text = raw.trim();
   if (!text) return [];
+
+  const extractFlightNo = (s: string | undefined) => {
+    if (!s) return "";
+    const m = String(s).match(/(\d{2,})/);
+    return m ? m[1] : String(s).trim();
+  };
+  const normalizeDate = (d: string | undefined) => {
+    if (!d) return undefined as unknown as string;
+    const m = String(d).match(/(\d{4}[\/-]\d{2}[\/-]\d{2})/);
+    return m ? m[1].replace(/-/g, "/") : String(d);
+  };
+
   try {
     const json = JSON.parse(text);
-    if (Array.isArray(json)) {
-      return json.map((r: any) => ({
-        buyer: String(r.buyer ?? r.customer ?? r.client ?? "").trim(),
-        pnr: String(r.pnr ?? r.PNR ?? r.booking ?? "").trim(),
-        flightNumber: String(r.flightNumber ?? r.flight_no ?? r.flight ?? "").trim(),
-        date: r.date ?? r.flightDate,
-        origin: r.origin ?? r.from,
-        destination: r.destination ?? r.to,
-        airline: r.airline,
-        supplier: r.supplier,
-      })).filter((t) => t.buyer && t.pnr && t.flightNumber);
+
+    // Shape: { data: [...] }
+    const arr = Array.isArray(json) ? json : Array.isArray((json as any)?.data) ? (json as any).data : null;
+    if (arr) {
+      const out: Trip[] = [];
+      for (const r of arr) {
+        const buyer = String(
+          r.lp_reference ?? r.userSearchTitle ?? (r.usersName && r.usersName[0]) ?? r.buyer ?? r.customer ?? r.client ?? ""
+        ).trim();
+        const pnr = String(r.pnr ?? r.PNR ?? r.booking ?? "").trim();
+        const supplier = r.supplier;
+
+        const legs: any[] = r.serviceDetails?.legsInfo ?? [];
+        if (legs.length > 0) {
+          for (const leg of legs) {
+            const t: Trip = {
+              buyer,
+              pnr,
+              flightNumber: extractFlightNo(leg.airlineAndflightNumber),
+              date: normalizeDate(leg.date),
+              origin: leg.departureAirportAbb,
+              destination: leg.arrivalAirportAbb,
+              airline: leg.airline ?? r.flight_airline,
+              supplier,
+            };
+            if (t.buyer && t.pnr && t.flightNumber) out.push(t);
+          }
+        } else {
+          const t: Trip = {
+            buyer,
+            pnr,
+            flightNumber: extractFlightNo(r.flightNumber ?? r.flight_no ?? r.flight),
+            date: normalizeDate(r.date ?? r.flightDate),
+            origin: r.origin ?? r.from,
+            destination: r.destination ?? r.to,
+            airline: r.airline ?? r.flight_airline,
+            supplier,
+          };
+          if (t.buyer && t.pnr && t.flightNumber) out.push(t);
+        }
+      }
+      return out;
     }
   } catch {}
 
+  // CSV fallback
   const lines = text.split(/\r?\n/).filter(Boolean);
   if (lines.length === 0) return [];
   const headers = lines[0].split(",").map((h) => h.trim());
@@ -219,7 +263,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب المشتري اعتمادًا عل�� PNR المطابقة لرقم الرحلة.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب المشتري اعتمادًا على PNR المطابقة لرقم الرحلة.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -292,7 +336,7 @@ export default function Index() {
               <CardTitle>استيراد بيانات الرحلات (CSV/JSON)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='حقول متوقعة: buyer,pnr,flightNumber,date,origin,destination,airline,supplier\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\nSara,XYZ999,7777\n\nأو JSON Array.' />
+              <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='يدعم الصيغ: CSV أو JSON.\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\n\nمثال JSON API:\n{ "data": [ { "lp_reference": "Ahmed", "pnr": "ABC123", "serviceDetails": { "legsInfo": [ { "airlineAndflightNumber": "EP 6568" } ] } } ] }' />
               <div className="text-xs text-muted-foreground">سيتم التجميع حسب المشتري مع مطابقة رقم الرحلة المدخل أعلاه.</div>
             </CardContent>
             <CardFooter className="flex justify-between gap-2">
