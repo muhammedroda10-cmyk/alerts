@@ -103,7 +103,7 @@ export default function Index() {
       await navigator.clipboard.writeText(preview);
       toast({ title: "تم النسخ", description: "نص التبليغ في الحافظة" });
     } catch {
-      toast({ title: "تعذر النسخ", description: "يرجى النسخ يدويًا" });
+      toast({ title: "تعذر ا��نسخ", description: "يرجى النسخ يدويًا" });
     }
   };
 
@@ -203,7 +203,7 @@ export default function Index() {
 
           <Card className="border-primary/20">
             <CardHeader>
-              <CardTitle>معاي��ة التبليغ</CardTitle>
+              <CardTitle>معاينة التبليغ</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea className="min-h-[320px] leading-8" value={preview} readOnly />
@@ -227,7 +227,7 @@ export default function Index() {
                     <CardTitle className="text-base font-bold">{h.summary}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <pre className="whitespace-pre-wrap text-sm text-muted-foreground line-clamp-6">{h.message}</pre>
+                    <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto">{h.message}</pre>
                   </CardContent>
                   <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{format(new Date(h.createdAt), "yyyy/MM/dd HH:mm")}</span>
