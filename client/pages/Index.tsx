@@ -43,6 +43,16 @@ function formatDateYMD(dateStr: string) {
   try { return format(new Date(dateStr), "yyyy/MM/dd"); } catch { return dateStr; }
 }
 
+function normalizeDateForCompare(s?: string) {
+  if (!s) return "";
+  const m = String(s).match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/);
+  return m ? `${m[1]}/${m[2]}/${m[3]}` : String(s);
+}
+
+function equalCI(a?: string, b?: string) {
+  return String(a ?? "").trim().toUpperCase() === String(b ?? "").trim().toUpperCase();
+}
+
 function parseTrips(raw: string): Trip[] {
   const text = raw.trim();
   if (!text) return [];
@@ -242,16 +252,29 @@ export default function Index() {
 
   const matchedByTitle = useMemo(() => {
     const map = new Map<string, string[]>();
+    const wantDate = normalizeDateForCompare(date);
     for (const t of trips) {
       if (!t.flightNumber) continue;
-      if (t.flightNumber.toString().trim() !== flightNumber.toString().trim()) continue;
+      // Match flight number
+      if (String(t.flightNumber).trim() !== String(flightNumber).trim()) continue;
+      // Match route if provided
+      if (origin && destination) {
+        if (!equalCI(t.origin, origin) || !equalCI(t.destination, destination)) continue;
+      }
+      // Match airline if provided
+      if (airline && t.airline && !equalCI(t.airline, airline)) continue;
+      // Match date if present in trip
+      if (t.date) {
+        const legDate = normalizeDateForCompare(t.date);
+        if (legDate && wantDate && legDate !== wantDate) continue;
+      }
       const key = String(t.title || "غير معروف").trim();
       const list = map.get(key) ?? [];
       if (!list.includes(t.pnr)) list.push(t.pnr);
       map.set(key, list);
     }
     return map;
-  }, [trips, flightNumber]);
+  }, [trips, flightNumber, origin, destination, airline, date]);
 
   const groupedNotifications = useMemo(() => {
     return Array.from(matchedByTitle.entries()).map(([groupName, pnrs]) => {
@@ -269,7 +292,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle اعتمادًا على PNR المطابقة لرقم الرحلة.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
