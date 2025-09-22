@@ -38,10 +38,6 @@ function toMinutes(t: string) {
   return hh * 60 + mm;
 }
 
-function periodLabel(hhmm: string) {
-  const h = Number(hhmm.split(":" )[0]);
-  return h < 12 ? "صباحا" : "مساءً";
-}
 
 function formatDateYMD(dateStr: string) {
   try { return format(new Date(dateStr), "yyyy/MM/dd"); } catch { return dateStr; }
@@ -70,6 +66,8 @@ function parseTrips(raw: string): Trip[] {
     if (arr) {
       const out: Trip[] = [];
       for (const r of arr) {
+        const status = String(r.booking_status ?? r.bookingStatus ?? "").toUpperCase();
+        if (status === "CANCELED" || status === "CANCELLED") continue;
         const title = String(
           r.userSearchTitle ?? r.lp_reference ?? (r.usersName && r.usersName[0]) ?? r.buyer ?? r.customer ?? r.client ?? ""
         ).trim();
@@ -125,6 +123,8 @@ function parseTrips(raw: string): Trip[] {
     const cols = lines[i].split(",");
     const row: Record<string,string> = {};
     headers.forEach((h, idx) => (row[h] = (cols[idx] ?? "").trim()));
+    const status = (row["booking_status"] || row["bookingStatus"] || "").toUpperCase();
+    if (status === "CANCELED" || status === "CANCELLED") continue;
     const title = get(row, "userSearchTitle", "lp_reference", "buyer", "customer", "client");
     const trip: Trip = {
       buyer: get(row, "buyer", "customer", "client") || title,
@@ -173,7 +173,7 @@ export default function Index() {
         `تم تأخير رحلة ${route} بتاريخ ${dateStr} على طيران ${airline}`,
         `رقم الرحلة ${flightNumber}`,
         `الوقت القديم: ${oldTime}`,
-        `الوقت الجديد: ${newTime} ${periodLabel(newTime)}${isNextDay ? ` (في اليوم التالي ${newDateStr})` : ""}`,
+        `الوقت الجديد: ${newTime}${isNextDay ? ` (في اليوم التالي ${newDateStr})` : ""}`,
         "يرجى ابلاغ المسافرين لطفا",
         "",
       ].join("\n");
@@ -316,12 +316,12 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="oldTime">الوقت القديم</Label>
-                  <Input id="oldTime" type="time" value={oldTime} onChange={(e) => setOldTime(e.target.value)} />
+                  <Label htmlFor="oldTime">الوقت القديم (24 ساعة HH:MM)</Label>
+                  <Input id="oldTime" inputMode="numeric" placeholder="HH:MM" value={oldTime} onChange={(e) => setOldTime(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="newTime">الوقت الجديد {isNextDay ? <span className="text-xs text-muted-foreground">(اليوم التالي)</span> : null}</Label>
-                  <Input id="newTime" type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
+                  <Label htmlFor="newTime">الوقت الجديد (24 ساعة){isNextDay ? <span className="text-xs text-muted-foreground"> (اليوم التالي)</span> : null}</Label>
+                  <Input id="newTime" inputMode="numeric" placeholder="HH:MM" value={newTime} onChange={(e) => setNewTime(e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
