@@ -167,6 +167,15 @@ export default function Index() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [hiddenGroups, setHiddenGroups] = useState<Record<string, boolean>>({});
 
+  // API fetch states
+  const [apiUrl, setApiUrl] = useState("https://accounts.fly4all.com/api/booking/flight");
+  const [apiToken, setApiToken] = useState("");
+  const [apiDepartureFrom, setApiDepartureFrom] = useState("");
+  const [apiDepartureTo, setApiDepartureTo] = useState("");
+  const [apiFlightNumber, setApiFlightNumber] = useState("");
+  const [apiPnr, setApiPnr] = useState("");
+  const [apiPerPage, setApiPerPage] = useState(100);
+
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
     return toMinutes(newTime) < toMinutes(oldTime);
@@ -248,6 +257,47 @@ export default function Index() {
     setTrips(parsed);
     setHiddenGroups({});
     toast({ title: "تم الاستيراد", description: `${parsed.length} رحلة` });
+  };
+
+  const fetchFromApi = async () => {
+    if (!apiToken) {
+      toast({ title: "مطلوب التوكن", description: "أدخل Bearer Token" });
+      return;
+    }
+    try {
+      const payload = {
+        url: apiUrl,
+        token: apiToken,
+        params: {
+          pagination: { page: 1, perpage: apiPerPage },
+          query: {
+            bookingStatus: "all",
+            paymentStatus: "default",
+            seller: 0,
+            departureFrom: apiDepartureFrom || date,
+            departureTo: apiDepartureTo || date,
+            flightNumber: apiFlightNumber || flightNumber,
+            pnr: apiPnr,
+          },
+          sort: { field: "id", sort: "desc" },
+        },
+      };
+      const res = await fetch("/api/booking/flight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data?.message || "فشل الجلب");
+      }
+      const parsed = parseTrips(JSON.stringify(data));
+      setTrips(parsed);
+      setHiddenGroups({});
+      toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
+    } catch (e: any) {
+      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
+    }
   };
 
   const matchedByTitle = useMemo(() => {
@@ -366,11 +416,56 @@ export default function Index() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='يدعم الصيغ: CSV أو JSON.\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\n\nمثال JSON API:\n{ "data": [ { "lp_reference": "Ahmed", "pnr": "ABC123", "serviceDetails": { "legsInfo": [ { "airlineAndflightNumber": "EP 6568" } ] } } ] }' />
-              <div className="text-xs text-muted-foreground">سيتم التجميع حسب userSearchTitle مع مطابقة رقم الرحلة المدخل أعلاه.</div>
+              <div className="text-xs text-muted-foreground">سيتم التجميع حسب userSearchTitle مع مطابقة رقم الرحلة المدخل أع��اه.</div>
             </CardContent>
             <CardFooter className="flex justify-between gap-2">
               <Button onClick={importTrips}>استيراد</Button>
               <Button variant="secondary" onClick={() => { setRawTrips(""); setTrips([]); }}>إزالة البيانات</Button>
+            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="apiUrl">الرابط</Label>
+                <Input id="apiUrl" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="apiToken">Bearer Token</Label>
+                <Input id="apiToken" type="password" value={apiToken} onChange={(e) => setApiToken(e.target.value)} placeholder="أدخل التوكن" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="depFrom">من تاريخ</Label>
+                  <Input id="depFrom" type="date" value={apiDepartureFrom} onChange={(e) => setApiDepartureFrom(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="depTo">إلى تاريخ</Label>
+                  <Input id="depTo" type="date" value={apiDepartureTo} onChange={(e) => setApiDepartureTo(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="apiFlight">رقم الرحلة</Label>
+                  <Input id="apiFlight" value={apiFlightNumber} onChange={(e) => setApiFlightNumber(e.target.value)} placeholder={flightNumber} />
+                </div>
+                <div>
+                  <Label htmlFor="apiPnr">PNR</Label>
+                  <Input id="apiPnr" value={apiPnr} onChange={(e) => setApiPnr(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="perPage">Per Page</Label>
+                  <Input id="perPage" type="number" min={1} max={500} value={apiPerPage} onChange={(e) => setApiPerPage(Number(e.target.value || 100))} />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button onClick={fetchFromApi}>جلب من API</Button>
             </CardFooter>
           </Card>
         </div>
