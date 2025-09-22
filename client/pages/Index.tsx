@@ -164,7 +164,7 @@ export default function Index() {
   const [oldTime, setOldTime] = useState("19:30");
   const [newTime, setNewTime] = useState("01:00");
   const [supplier, setSupplier] = useState("FLY4ALL");
-  const [type, setType] = useState("delay");
+  const [type, setType] = useState("delay"); // delay | advance | cancel
 
   const [rawTrips, setRawTrips] = useState("");
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -183,39 +183,61 @@ export default function Index() {
     if (!oldTime || !newTime) return false;
     return toMinutes(newTime) < toMinutes(oldTime);
   }, [oldTime, newTime]);
+  const isPrevDay = useMemo(() => {
+    if (!oldTime || !newTime) return false;
+    return toMinutes(newTime) > toMinutes(oldTime);
+  }, [oldTime, newTime]);
 
   const basePreview = useMemo(() => {
-    const route = `${origin} ${destination}`.trim();
-    const dateStr = formatDateYMD(date);
-    const newDateStr = isNextDay ? format(addDays(date, 1), "yyyy/MM/dd") : undefined;
+    const route = `(*${origin} -> ${destination}*)`;
+    const dateFmt = (() => {
+      try { return format(new Date(date), "d/M/yyyy"); } catch { return date; }
+    })();
 
     if (type === "delay") {
+      const nextDayNote = isNextDay ? ` (اليوم التالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
       return [
-        "تحية طيبة..",
-        `تم تأخير رحلة ${route} بتاريخ ${dateStr} على طيران ${airline}`,
-        `رقم الرحلة ${flightNumber}`,
-        `الوقت القديم: ${oldTime}`,
-        `الوقت الجديد: ${newTime}${isNextDay ? ` (في اليوم التالي ${newDateStr})` : ""}`,
-        "يرجى ابلاغ المسافرين لطفا",
+        "تحية طيبة ...",
+        `تم تأخير رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
+        "",
+        `الوقت القديم : *${oldTime}*`,
+        `الوقت الجديد : *${newTime}*${nextDayNote}`,
+        "يرجى ابلاغ المسافرين لطفا ",
+        "",
+      ].join("\n");
+    }
+
+    if (type === "advance") {
+      const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      return [
+        "تحية طيبة ...",
+        `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
+        "",
+        `الوقت القديم : *${oldTime}*`,
+        `الوقت الجديد : *${newTime}*${prevDayNote}`,
+        "يرجى ابلاغ المسافرين لطفا ",
         "",
       ].join("\n");
     }
 
     if (type === "cancel") {
       return [
-        "تحية طيبة..",
-        `نأسف لإبلاغكم بأنه تم إلغاء رحلة ${route} بتاريخ ${dateStr} على طيران ${airline}`,
-        `رقم الرحلة ${flightNumber}`,
+        "تحية طيبة ...",
+        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
+        "",
         "يرجى التواصل لترتيب البدائل المناسبة",
         "",
       ].join("\n");
     }
 
     return "";
-  }, [airline, date, destination, flightNumber, isNextDay, newTime, oldTime, origin, type]);
+  }, [airline, date, destination, flightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
 
   const previewSingle = useMemo(() => {
-    return [basePreview, supplier].filter(Boolean).join("\n");
+    return [basePreview, `PNR : `, "", supplier].filter(Boolean).join("\n");
   }, [basePreview, supplier]);
 
   useEffect(() => {
@@ -240,7 +262,7 @@ export default function Index() {
       await navigator.clipboard.writeText(text);
       toast({ title: "تم النسخ", description: "النص في الحافظة" });
     } catch {
-      toast({ title: "تعذر النسخ", description: "يرجى النسخ يدويًا" });
+      toast({ title: "تعذر النسخ", description: "يرجى النسخ ��دويًا" });
     }
   };
 
@@ -303,42 +325,54 @@ export default function Index() {
     }
   };
 
+  type PnrSupplier = { pnr: string; supplier: string };
   const matchedByTitle = useMemo(() => {
-    const map = new Map<string, string[]>();
+    const map = new Map<string, PnrSupplier[]>();
     const wantDate = normalizeDateForCompare(date);
     for (const t of trips) {
       if (!t.flightNumber) continue;
-      // Match flight number
       if (String(t.flightNumber).trim() !== String(flightNumber).trim()) continue;
-      // Match route if provided
       if (origin && destination) {
         if (!equalCI(t.origin, origin) || !equalCI(t.destination, destination)) continue;
       }
-      // Match airline if provided
       if (airline && t.airline && !equalCI(t.airline, airline)) continue;
-      // Match date if present in trip
       if (t.date) {
         const legDate = normalizeDateForCompare(t.date);
         if (legDate && wantDate && legDate !== wantDate) continue;
       }
       const key = String(t.title || "غير معروف").trim();
       const list = map.get(key) ?? [];
-      if (!list.includes(t.pnr)) list.push(t.pnr);
+      if (!list.find((ps) => ps.pnr === t.pnr)) list.push({ pnr: t.pnr, supplier: String(t.supplier || "غير معروف") });
       map.set(key, list);
     }
     return map;
   }, [trips, flightNumber, origin, destination, airline, date]);
 
+  const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
+  const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({});
+
   const groupedNotifications = useMemo(() => {
-    return Array.from(matchedByTitle.entries()).map(([groupName, pnrs]) => {
-      const body = [
-        basePreview,
-        ...pnrs.map((p) => `PNR: ${p}`),
-        supplier,
-      ].join("\n");
-      return { groupName, pnrs, body };
+    return Array.from(matchedByTitle.entries()).map(([groupName, pnrsSuppliers]) => {
+      const lines: string[] = [basePreview];
+      // Group PNRs by supplier in encounter order
+      const supplierOrder: string[] = [];
+      const bySupplier = new Map<string, string[]>();
+      for (const { pnr, supplier: s } of pnrsSuppliers) {
+        const sup = s || "غير معروف";
+        if (!bySupplier.has(sup)) { bySupplier.set(sup, []); supplierOrder.push(sup); }
+        bySupplier.get(sup)!.push(pnr);
+      }
+      for (const sup of supplierOrder) {
+        if (selectedSuppliers[sup] && (supplierNotes[sup] || "").trim()) {
+          lines.push(supplierNotes[sup].trim());
+        }
+        const list = bySupplier.get(sup)!;
+        for (const p of list) lines.push(`PNR : ${p}`);
+      }
+      lines.push("", supplier);
+      return { groupName, pnrs: pnrsSuppliers.map((x) => x.pnr), body: lines.join("\n") };
     });
-  }, [matchedByTitle, basePreview, supplier]);
+  }, [matchedByTitle, basePreview, supplier, selectedSuppliers, supplierNotes]);
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
@@ -385,6 +419,7 @@ export default function Index() {
                     <SelectTrigger id="type"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="delay">تأخير</SelectItem>
+                      <SelectItem value="advance">تعجيل</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
                     </SelectContent>
                   </Select>
@@ -477,7 +512,21 @@ export default function Index() {
           <CardHeader>
             <CardTitle>التبليغات حسب userSearchTitle</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Supplier notes controls */}
+            <div>
+              <h3 className="font-bold mb-2">ملاحظات الموردين</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Array.from(new Set(Array.from(matchedByTitle.values()).flat().map((x) => x.supplier || "غير معروف"))).map((sup) => (
+                  <div key={sup} className="flex items-center gap-2">
+                    <input id={`sup-${sup}`} type="checkbox" checked={!!selectedSuppliers[sup]} onChange={(e) => setSelectedSuppliers((m) => ({ ...m, [sup]: e.target.checked }))} />
+                    <Label htmlFor={`sup-${sup}`} className="min-w-24">{sup}</Label>
+                    <Input placeholder="ملاحظة لهذا المورد" value={supplierNotes[sup] || ""} onChange={(e) => setSupplierNotes((m) => ({ ...m, [sup]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {groupedNotifications.length === 0 ? (
               <p className="text-muted-foreground">لا توجد نتائج. قم باستيراد بيانات رحلات ثم أدخل رقم الرحلة للمطابقة.</p>
             ) : (
@@ -488,7 +537,7 @@ export default function Index() {
                       <CardTitle className="text-base">{bn.groupName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Textarea readOnly value={bn.body} className="min-h-[220px]" />
+                      <Textarea readOnly value={bn.body} className="min-h-[260px]" />
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
                       <Button variant="secondary" onClick={() => setHiddenGroups((m) => ({ ...m, [bn.groupName]: !m[bn.groupName] }))}>
