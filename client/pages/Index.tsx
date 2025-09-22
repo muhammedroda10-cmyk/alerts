@@ -87,7 +87,10 @@ function parseTrips(raw: string): Trip[] {
 
         const legs: any[] = r.serviceDetails?.legsInfo ?? [];
         if (legs.length > 0) {
-          for (const leg of legs) {
+          const tripType = String(r.tripType ?? r.serviceDetails?.tripType ?? "").toLowerCase();
+          const isOpenReturn = tripType === "openreturn";
+          const legsToUse = isOpenReturn ? [legs[0]].filter(Boolean) : legs;
+          for (const leg of legsToUse) {
             const t: Trip = {
               buyer,
               title,
