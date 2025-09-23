@@ -259,10 +259,33 @@ export default function Index() {
 
   const copy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      toast({ title: "تم النسخ", description: "النص في الحافظة" });
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        toast({ title: "تم النسخ", description: "النص في الحافظة" });
+        return;
+      }
+      throw new Error("Clipboard API unavailable");
     } catch {
-      toast({ title: "تعذر النسخ", description: "يرجى النسخ ��دويًا" });
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        ta.style.pointerEvents = "none";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (ok) {
+          toast({ title: "تم النسخ", description: "النص في الحافظة" });
+          return;
+        }
+        throw new Error("execCommand failed");
+      } catch {
+        toast({ title: "تعذر النسخ", description: "يرجى النسخ يدويًا" });
+      }
     }
   };
 
@@ -569,7 +592,7 @@ export default function Index() {
                   </CardContent>
                   <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{format(new Date(h.createdAt), "yyyy/MM/dd HH:mm")}</span>
-                    <Button size="sm" onClick={() => navigator.clipboard.writeText(h.message)}>نسخ</Button>
+                    <Button size="sm" onClick={() => copy(h.message)}>نسخ</Button>
                   </CardFooter>
                 </Card>
               ))}
