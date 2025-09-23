@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -215,7 +216,7 @@ export default function Index() {
         `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
-        `الوقت القديم : *${oldTime}*`,
+        `الوقت ا��قديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "يرجى ابلاغ المسافرين لطفا ",
         "",
@@ -337,7 +338,7 @@ export default function Index() {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        throw new Error(data?.message || "فشل الجلب");
+        throw new Error(data?.message || "فشل ال��لب");
       }
       const parsed = parseTrips(JSON.stringify(data));
       setTrips(parsed);
@@ -373,6 +374,8 @@ export default function Index() {
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({});
+  const [copiedGroups, setCopiedGroups] = useState<Record<string, boolean>>({});
+  const [deliveredGroups, setDeliveredGroups] = useState<Record<string, boolean>>({});
 
   const groupedNotifications = useMemo(() => {
     return Array.from(matchedByTitle.entries()).map(([groupName, pnrsSuppliers]) => {
@@ -477,7 +480,7 @@ export default function Index() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='يدعم الصيغ: CSV أو JSON.\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\n\nمثال JSON API:\n{ "data": [ { "lp_reference": "Ahmed", "pnr": "ABC123", "serviceDetails": { "legsInfo": [ { "airlineAndflightNumber": "EP 6568" } ] } } ] }' />
-              <div className="text-xs text-muted-foreground">سيتم التجميع حسب userSearchTitle مع مطابقة رقم الرحلة المدخل أع��اه.</div>
+              <div className="text-xs text-muted-foreground">سيتم التجميع حسب userSearchTitle مع مطابقة رقم الرحلة ا��مدخل أع��اه.</div>
             </CardContent>
             <CardFooter className="flex justify-between gap-2">
               <Button onClick={importTrips}>استيراد</Button>
@@ -555,7 +558,10 @@ export default function Index() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groupedNotifications.map((bn) => (
-                  <Card key={bn.groupName} className={hiddenGroups[bn.groupName] ? "opacity-50" : undefined}>
+                  <Card key={bn.groupName} className={cn(
+                      hiddenGroups[bn.groupName] && "opacity-50",
+                      deliveredGroups[bn.groupName] ? "border-green-300 bg-green-50" : (copiedGroups[bn.groupName] ? "border-orange-300 bg-orange-50" : "")
+                    )}>
                     <CardHeader>
                       <CardTitle className="text-base">{bn.groupName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
                     </CardHeader>
@@ -567,8 +573,14 @@ export default function Index() {
                         {hiddenGroups[bn.groupName] ? "إظهار" : "إخفاء"}
                       </Button>
                       <div className="flex gap-2">
-                        <Button onClick={() => copy(bn.body)}>نسخ</Button>
-                        <Button variant="outline" onClick={() => save(bn.body, `${bn.groupName} | ${origin}-${destination} ${flightNumber}`)}>حفظ</Button>
+                        <Button onClick={() => { copy(bn.body); setCopiedGroups((m) => ({ ...m, [bn.groupName]: true })); }}>نسخ</Button>
+                        {deliveredGroups[bn.groupName] ? (
+                          <Button disabled className="bg-green-600 text-white hover:bg-green-600 cursor-default">تم التبليغ</Button>
+                        ) : copiedGroups[bn.groupName] ? (
+                          <Button className="bg-orange-600 text-white hover:bg-orange-700" onClick={() => setDeliveredGroups((m) => ({ ...m, [bn.groupName]: true }))}>تم التبليغ</Button>
+                        ) : (
+                          <Button variant="outline" onClick={() => save(bn.body, `${bn.groupName} | ${origin}-${destination} ${flightNumber}`)}>حفظ</Button>
+                        )}
                       </div>
                     </CardFooter>
                   </Card>
