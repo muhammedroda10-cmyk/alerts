@@ -557,7 +557,7 @@ export default function Index() {
             </div>
 
             {groupedNotifications.length === 0 ? (
-              <p className="text-muted-foreground">لا توجد نتا��ج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.</p>
+              <p className="text-muted-foreground">لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groupedNotifications.map((bn) => (
