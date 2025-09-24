@@ -208,8 +208,8 @@ export default function Index() {
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         `الوقت القديم : *${oldTime}*`,
-        `الوقت الجدي�� : *${newTime}*${nextDayNote}`,
-        "يرجى ابلاغ المسافرين لطفا ",
+        `الوقت الجديد : *${newTime}*${nextDayNote}`,
+        "يرجى إبلاغ المسافرين لطفًا ",
         "",
       ].join("\n");
     }
@@ -265,6 +265,10 @@ export default function Index() {
     localStorage.setItem("alerts-history", JSON.stringify(history));
   }, [history]);
 
+  useEffect(() => {
+    if (apiToken) localStorage.setItem(TOKEN_KEY, apiToken);
+  }, [apiToken]);
+
   const copy = async (text: string) => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -317,6 +321,7 @@ export default function Index() {
 
   const fetchFromApi = async () => {
     if (!apiToken) {
+      setShowTokenDialog(true);
       toast({ title: "مطلوب التوكن", description: "أدخل Bearer Token" });
       return;
     }
@@ -345,6 +350,9 @@ export default function Index() {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
+        if (res.status === 401 || /unauth|token|bearer/i.test(String(data?.message || ""))) {
+          setShowTokenDialog(true);
+        }
         throw new Error(data?.message || "فشل الطلب");
       }
       const parsed = parseTrips(JSON.stringify(data));
@@ -549,7 +557,7 @@ export default function Index() {
             </div>
 
             {groupedNotifications.length === 0 ? (
-              <p className="text-muted-foreground">لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.</p>
+              <p className="text-muted-foreground">لا توجد نتا��ج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groupedNotifications.map((bn) => (
