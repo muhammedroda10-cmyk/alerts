@@ -1,8 +1,9 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 export default function Header() {
-  const { pathname } = useLocation();
+  // Avoid using useLocation hook to prevent hooks-in-router errors in edge cases
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
   const nav = [
     { href: "/", label: "التبليغات" },
     { href: "/trips", label: "الرحلات" },
