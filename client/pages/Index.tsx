@@ -221,9 +221,9 @@ export default function Index() {
         `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
-        `الوقت ا��قديم : *${oldTime}*`,
+        `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
-        "يرجى ابل��غ المسافرين لطفا ",
+        "يرجى إبلاغ المسافرين لطفًا ",
         "",
       ].join("\n");
     }
@@ -231,7 +231,7 @@ export default function Index() {
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
-        `نأسف لإبلاغكم بأنه ت�� إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         "يرجى التواصل لترتيب البدائل المناسبة",
@@ -243,8 +243,8 @@ export default function Index() {
   }, [airline, date, destination, flightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
 
   const previewSingle = useMemo(() => {
-    return [basePreview, `PNR : `, "", supplier].filter(Boolean).join("\n");
-  }, [basePreview, supplier]);
+    return [basePreview, `PNR : `, ""].join("\n");
+  }, [basePreview]);
 
   useEffect(() => {
     const raw = localStorage.getItem("alerts-history");
@@ -269,7 +269,7 @@ export default function Index() {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-        toast({ title: "تم النسخ", description: "ا��نص في الحافظة" });
+        toast({ title: "تم النسخ", description: "النص في الحافظة" });
         return;
       }
       throw new Error("Clipboard API unavailable");
@@ -345,14 +345,14 @@ export default function Index() {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        throw new Error(data?.message || "فشل ال��لب");
+        throw new Error(data?.message || "فشل الطلب");
       }
       const parsed = parseTrips(JSON.stringify(data));
       setTrips(parsed);
       setHiddenGroups({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
-      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر ا��اتصال" });
+      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
     }
   };
 
@@ -401,8 +401,7 @@ export default function Index() {
           lines.push(supplierNotes[sup].trim());
         }
         for (const p of list) lines.push(`PNR : ${p}`);
-        lines.push("", sup);
-        items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
+                items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
     }
     return items;
@@ -413,7 +412,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مج��ّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مط��بقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -485,7 +484,7 @@ export default function Index() {
 
           <Card>
             <CardHeader>
-              <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
+              <CardTitle>��لب مباشر من API (Proxy)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
@@ -562,6 +561,7 @@ export default function Index() {
                     </CardHeader>
                     <CardContent>
                       <Textarea readOnly value={bn.body} className="min-h-[260px]" />
+                      <div className="mt-2 text-xs text-muted-foreground text-right">{bn.supplier}</div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
                       <Button variant="secondary" onClick={() => setHiddenGroups((m) => ({ ...m, [bn.id]: !m[bn.id] }))}>
