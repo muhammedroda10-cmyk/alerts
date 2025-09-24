@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -405,7 +406,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مج��ّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -611,6 +612,22 @@ export default function Index() {
             </div>
           </div>
         )}
+        <Dialog open={showTokenDialog} onOpenChange={setShowTokenDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>أدخل Bearer Token</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="newToken">التوكن</Label>
+              <Input id="newToken" type="password" value={tokenCandidate} onChange={(e) => setTokenCandidate(e.target.value)} placeholder="أدخل التوكن" />
+              <p className="text-xs text-muted-foreground">سيتم حفظه في المتصفح للاستخدام القادم.</p>
+            </div>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setShowTokenDialog(false)}>إلغاء</Button>
+              <Button onClick={() => { if (tokenCandidate.trim()) { setApiToken(tokenCandidate.trim()); localStorage.setItem(TOKEN_KEY, tokenCandidate.trim()); setShowTokenDialog(false); toast({ title: "تم الحفظ", description: "حُفظ التوكن" }); } }}>حفظ</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </main>
   );
