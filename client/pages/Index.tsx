@@ -180,6 +180,10 @@ export default function Index() {
   const [apiFlightNumber, setApiFlightNumber] = useState("");
   const [apiPnr, setApiPnr] = useState("");
   const [apiPerPage, setApiPerPage] = useState(100);
+  // Token persistence states
+  const TOKEN_KEY = "booking_api_token";
+  const [showTokenDialog, setShowTokenDialog] = useState(false);
+  const [tokenCandidate, setTokenCandidate] = useState("");
 
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
@@ -219,7 +223,7 @@ export default function Index() {
         "",
         `الوقت ا��قديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
-        "يرجى ابلاغ المسافرين لطفا ",
+        "يرجى ابل��غ المسافرين لطفا ",
         "",
       ].join("\n");
     }
