@@ -412,7 +412,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مط��بقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -484,7 +484,7 @@ export default function Index() {
 
           <Card>
             <CardHeader>
-              <CardTitle>��لب مباشر من API (Proxy)</CardTitle>
+              <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
