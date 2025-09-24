@@ -251,6 +251,8 @@ export default function Index() {
     if (raw) setHistory(JSON.parse(raw));
     const savedTrips = localStorage.getItem("alerts-trips");
     if (savedTrips) setTrips(JSON.parse(savedTrips));
+    const savedToken = localStorage.getItem(TOKEN_KEY);
+    if (savedToken) setApiToken(savedToken);
   }, []);
 
   useEffect(() => {
@@ -285,7 +287,7 @@ export default function Index() {
         const ok = document.execCommand("copy");
         document.body.removeChild(ta);
         if (ok) {
-          toast({ title: "تم النسخ", description: "النص في الحافظة" });
+          toast({ title: "تم النسخ", description: "ا��نص في الحافظة" });
           return;
         }
         throw new Error("execCommand failed");
