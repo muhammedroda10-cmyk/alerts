@@ -227,7 +227,7 @@ export default function Index() {
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
-        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `نأسف لإبلاغكم بأنه ت�� إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         "يرجى التواصل لترتيب البدائل المناسبة",
@@ -263,7 +263,7 @@ export default function Index() {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-        toast({ title: "تم النسخ", description: "النص في الحافظة" });
+        toast({ title: "تم النسخ", description: "ا��نص في الحافظة" });
         return;
       }
       throw new Error("Clipboard API unavailable");
@@ -346,7 +346,7 @@ export default function Index() {
       setHiddenGroups({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
-      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
+      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر ا��اتصال" });
     }
   };
 
@@ -555,13 +555,13 @@ export default function Index() {
             </div>
 
             {groupedNotifications.length === 0 ? (
-              <p className="text-muted-foreground">لا توجد نتائج. قم باستيراد بيانات رحلات ثم أدخل رقم الرحلة للمطابقة.</p>
+              <p className="text-muted-foreground">لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groupedNotifications.map((bn) => (
-                  <Card key={bn.groupName} className={cn(
-                      hiddenGroups[bn.groupName] && "opacity-50",
-                      deliveredGroups[bn.groupName] ? "border-green-300 bg-green-50" : (copiedGroups[bn.groupName] ? "border-orange-300 bg-orange-50" : "")
+                  <Card key={bn.id} className={cn(
+                      hiddenGroups[bn.id] && "opacity-50",
+                      deliveredGroups[bn.id] ? "border-green-300 bg-green-50" : (copiedGroups[bn.id] ? "border-orange-300 bg-orange-50" : "")
                     )}>
                     <CardHeader>
                       <CardTitle className="text-base">{bn.groupName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
@@ -570,17 +570,17 @@ export default function Index() {
                       <Textarea readOnly value={bn.body} className="min-h-[260px]" />
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
-                      <Button variant="secondary" onClick={() => setHiddenGroups((m) => ({ ...m, [bn.groupName]: !m[bn.groupName] }))}>
-                        {hiddenGroups[bn.groupName] ? "إظهار" : "إخفاء"}
+                      <Button variant="secondary" onClick={() => setHiddenGroups((m) => ({ ...m, [bn.id]: !m[bn.id] }))}>
+                        {hiddenGroups[bn.id] ? "إظهار" : "إخفاء"}
                       </Button>
                       <div className="flex gap-2">
-                        <Button onClick={() => { copy(bn.body); setCopiedGroups((m) => ({ ...m, [bn.groupName]: true })); }}>نسخ</Button>
-                        {deliveredGroups[bn.groupName] ? (
+                        <Button onClick={() => { copy(bn.body); setCopiedGroups((m) => ({ ...m, [bn.id]: true })); }}>نسخ</Button>
+                        {deliveredGroups[bn.id] ? (
                           <Button disabled className="bg-green-600 text-white hover:bg-green-600 cursor-default">تم التبليغ</Button>
-                        ) : copiedGroups[bn.groupName] ? (
-                          <Button className="bg-orange-600 text-white hover:bg-orange-700" onClick={() => setDeliveredGroups((m) => ({ ...m, [bn.groupName]: true }))}>تم التبليغ</Button>
+                        ) : copiedGroups[bn.id] ? (
+                          <Button className="bg-orange-600 text-white hover:bg-orange-700" onClick={() => setDeliveredGroups((m) => ({ ...m, [bn.id]: true }))}>تم التبليغ</Button>
                         ) : (
-                          <Button variant="outline" onClick={() => save(bn.body, `${bn.groupName} | ${origin}-${destination} ${flightNumber}`)}>حفظ</Button>
+                          <Button variant="outline" onClick={() => save(bn.body, `${bn.groupName} | ${origin}-${destination} ${flightNumber} | ${bn.supplier}`)}>حفظ</Button>
                         )}
                       </div>
                     </CardFooter>
