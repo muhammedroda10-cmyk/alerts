@@ -385,27 +385,28 @@ export default function Index() {
   const [deliveredGroups, setDeliveredGroups] = useState<Record<string, boolean>>({});
 
   const groupedNotifications = useMemo(() => {
-    return Array.from(matchedByTitle.entries()).map(([groupName, pnrsSuppliers]) => {
-      const lines: string[] = [basePreview];
-      // Group PNRs by supplier in encounter order
-      const supplierOrder: string[] = [];
+    const items: { id: string; groupName: string; supplier: string; pnrs: string[]; body: string }[] = [];
+    for (const [groupName, pnrsSuppliers] of matchedByTitle.entries()) {
       const bySupplier = new Map<string, string[]>();
+      const supplierOrder: string[] = [];
       for (const { pnr, supplier: s } of pnrsSuppliers) {
         const sup = s || "غير معروف";
         if (!bySupplier.has(sup)) { bySupplier.set(sup, []); supplierOrder.push(sup); }
         bySupplier.get(sup)!.push(pnr);
       }
       for (const sup of supplierOrder) {
+        const list = bySupplier.get(sup)!;
+        const lines: string[] = [basePreview];
         if (selectedSuppliers[sup] && (supplierNotes[sup] || "").trim()) {
           lines.push(supplierNotes[sup].trim());
         }
-        const list = bySupplier.get(sup)!;
         for (const p of list) lines.push(`PNR : ${p}`);
+        lines.push("", sup);
+        items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
-      lines.push("", supplier);
-      return { groupName, pnrs: pnrsSuppliers.map((x) => x.pnr), body: lines.join("\n") };
-    });
-  }, [matchedByTitle, basePreview, supplier, selectedSuppliers, supplierNotes]);
+    }
+    return items;
+  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes]);
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
