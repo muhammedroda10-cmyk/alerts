@@ -287,7 +287,7 @@ export default function Index() {
         const ok = document.execCommand("copy");
         document.body.removeChild(ta);
         if (ok) {
-          toast({ title: "تم النسخ", description: "ا��نص في الحافظة" });
+          toast({ title: "تم النسخ", description: "النص في الحافظة" });
           return;
         }
         throw new Error("execCommand failed");
@@ -481,19 +481,6 @@ export default function Index() {
             </CardFooter>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>استيراد بيانات الرحلات (CSV/JSON)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea value={rawTrips} onChange={(e) => setRawTrips(e.target.value)} className="min-h-[220px]" placeholder='يدعم الصيغ: CSV أو JSON.\nمثال CSV:\nbuyer,pnr,flightNumber\nAhmed,ABC123,6568\nAhmed,DEF456,6568\n\nمثال JSON API:\n{ "data": [ { "lp_reference": "Ahmed", "pnr": "ABC123", "serviceDetails": { "legsInfo": [ { "airlineAndflightNumber": "EP 6568" } ] } } ] }' />
-              <div className="text-xs text-muted-foreground">سيتم التجميع حسب userSearchTitle مع مطابقة رقم الرحلة ا��مدخل أع��اه.</div>
-            </CardContent>
-            <CardFooter className="flex justify-between gap-2">
-              <Button onClick={importTrips}>استيراد</Button>
-              <Button variant="secondary" onClick={() => { setRawTrips(""); setTrips([]); }}>إزالة البيانات</Button>
-            </CardFooter>
-          </Card>
 
           <Card>
             <CardHeader>
