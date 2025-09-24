@@ -208,7 +208,7 @@ export default function Index() {
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         `الوقت القديم : *${oldTime}*`,
-        `الوقت الجديد : *${newTime}*${nextDayNote}`,
+        `الوقت الجدي�� : *${newTime}*${nextDayNote}`,
         "يرجى ابلاغ المسافرين لطفا ",
         "",
       ].join("\n");
@@ -243,8 +243,8 @@ export default function Index() {
   }, [airline, date, destination, flightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
 
   const previewSingle = useMemo(() => {
-    return [basePreview, `PNR : `, ""].join("\n");
-  }, [basePreview]);
+    return [basePreview, `PNR : `, "", supplier].join("\n");
+  }, [basePreview, supplier]);
 
   useEffect(() => {
     const raw = localStorage.getItem("alerts-history");
@@ -401,7 +401,8 @@ export default function Index() {
           lines.push(supplierNotes[sup].trim());
         }
         for (const p of list) lines.push(`PNR : ${p}`);
-                items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
+        lines.push("", supplier);
+        items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
     }
     return items;
