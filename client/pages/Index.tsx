@@ -480,6 +480,51 @@ export default function Index() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+          <Card>
+            <CardHeader>
+              <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="apiUrl">الرابط</Label>
+                <Input id="apiUrl" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="apiToken">Bearer Token</Label>
+                <Input id="apiToken" type="password" value={apiToken} onChange={(e) => setApiToken(e.target.value)} placeholder="أدخل التوكن" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="depFrom">من تاريخ</Label>
+                  <Input id="depFrom" type="date" value={apiDepartureFrom} onChange={(e) => setApiDepartureFrom(e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="depTo">إلى تاريخ</Label>
+                  <Input id="depTo" type="date" value={apiDepartureTo} onChange={(e) => setApiDepartureTo(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="apiFlight">رقم الرحلة</Label>
+                  <Input id="apiFlight" value={apiFlightNumber} onChange={(e) => setApiFlightNumber(e.target.value)} placeholder={flightNumber} />
+                </div>
+                <div>
+                  <Label htmlFor="apiPnr">PNR</Label>
+                  <Input id="apiPnr" value={apiPnr} onChange={(e) => setApiPnr(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="perPage">Per Page</Label>
+                  <Input id="perPage" type="number" min={1} max={500} value={apiPerPage} onChange={(e) => setApiPerPage(Number(e.target.value || 100))} />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button onClick={fetchFromApi}>جلب من API</Button>
+            </CardFooter>
+          </Card>
+
           <Card className="xl:col-span-2">
             <CardHeader>
               <CardTitle>بيانات الرحلة</CardTitle>
@@ -562,52 +607,6 @@ export default function Index() {
               <Button variant="secondary" onClick={() => copy(singleEdited)}>نسخ تبليغ عام</Button>
             </CardFooter>
           </Card>
-
-
-          <Card>
-            <CardHeader>
-              <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="apiUrl">الرابط</Label>
-                <Input id="apiUrl" value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="apiToken">Bearer Token</Label>
-                <Input id="apiToken" type="password" value={apiToken} onChange={(e) => setApiToken(e.target.value)} placeholder="أدخل التوكن" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="depFrom">من تاريخ</Label>
-                  <Input id="depFrom" type="date" value={apiDepartureFrom} onChange={(e) => setApiDepartureFrom(e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="depTo">إلى تاريخ</Label>
-                  <Input id="depTo" type="date" value={apiDepartureTo} onChange={(e) => setApiDepartureTo(e.target.value)} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="apiFlight">رقم الرحلة</Label>
-                  <Input id="apiFlight" value={apiFlightNumber} onChange={(e) => setApiFlightNumber(e.target.value)} placeholder={flightNumber} />
-                </div>
-                <div>
-                  <Label htmlFor="apiPnr">PNR</Label>
-                  <Input id="apiPnr" value={apiPnr} onChange={(e) => setApiPnr(e.target.value)} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="perPage">Per Page</Label>
-                  <Input id="perPage" type="number" min={1} max={500} value={apiPerPage} onChange={(e) => setApiPerPage(Number(e.target.value || 100))} />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button onClick={fetchFromApi}>جلب من API</Button>
-            </CardFooter>
-          </Card>
         </div>
 
         <Card>
@@ -684,7 +683,10 @@ export default function Index() {
                   </CardContent>
                   <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{format(new Date(h.createdAt), "yyyy/MM/dd HH:mm")}</span>
-                    <Button size="sm" onClick={() => copy(h.message)}>نسخ</Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="destructive" onClick={() => setHistory((arr) => arr.filter((x) => x.id !== h.id))}>حذف</Button>
+                      <Button size="sm" onClick={() => copy(h.message)}>نسخ</Button>
+                    </div>
                   </CardFooter>
                 </Card>
               ))}
