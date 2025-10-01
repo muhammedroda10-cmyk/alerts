@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from "react";
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -411,7 +410,7 @@ export default function Index() {
       setHiddenGroups({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
-      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
+      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الا��صال" });
     }
   };
 
