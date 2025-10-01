@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -496,7 +497,7 @@ export default function Index() {
                   <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="flightNumber">رقم ال��حلة</Label>
+                  <Label htmlFor="flightNumber">رقم الرحلة</Label>
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
               </div>
