@@ -160,6 +160,7 @@ function parseTrips(raw: string): Trip[] {
 export default function Index() {
   const [airline, setAirline] = useState("Aseman Airlines");
   const [flightNumber, setFlightNumber] = useState("6568");
+  const [newFlightNumber, setNewFlightNumber] = useState("");
   const [date, setDate] = useState("2025-09-21");
   const [origin, setOrigin] = useState("IKA");
   const [destination, setDestination] = useState("BGW");
@@ -228,6 +229,47 @@ export default function Index() {
       ].join("\n");
     }
 
+    if (type === "number_change") {
+      return [
+        "تحية طيبة ...",
+        `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
+        "يرجى إبلاغ المسافرين لطفًا ",
+        "",
+      ].filter(Boolean).join("\n");
+    }
+
+    if (type === "number_time_delay") {
+      const nextDayNote = isNextDay ? ` (اليوم التالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
+      return [
+        "تحية طيبة ...",
+        `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
+        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
+        "",
+        `الوقت القديم : *${oldTime}*`,
+        `الوقت الجديد : *${newTime}*${nextDayNote}`,
+        "يرجى إبلاغ المسافرين لطفًا ",
+        "",
+      ].filter(Boolean).join("\n");
+    }
+
+    if (type === "number_time_advance") {
+      const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      return [
+        "تحية طيبة ...",
+        `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تعجيل)`,
+        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
+        "",
+        `الوقت القديم : *${oldTime}*`,
+        `الوقت الجديد : *${newTime}*${prevDayNote}`,
+        "يرجى إبلاغ المسافرين لطفًا ",
+        "",
+      ].filter(Boolean).join("\n");
+    }
+
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
@@ -240,11 +282,15 @@ export default function Index() {
     }
 
     return "";
-  }, [airline, date, destination, flightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
+  }, [airline, date, destination, flightNumber, newFlightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
 
   const previewSingle = useMemo(() => {
     return [basePreview, `PNR : `, "", supplier].join("\n");
   }, [basePreview, supplier]);
+
+  useEffect(() => {
+    if (!singleDirty) setSingleEdited(previewSingle);
+  }, [previewSingle, singleDirty]);
 
   useEffect(() => {
     const raw = localStorage.getItem("alerts-history");
@@ -260,6 +306,9 @@ export default function Index() {
   }, [trips]);
 
   const [history, setHistory] = useState<NotificationItem[]>([]);
+  const [editedBodies, setEditedBodies] = useState<Record<string, string>>({});
+  const [singleEdited, setSingleEdited] = useState("");
+  const [singleDirty, setSingleDirty] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("alerts-history", JSON.stringify(history));
@@ -316,7 +365,7 @@ export default function Index() {
     const parsed = parseTrips(rawTrips);
     setTrips(parsed);
     setHiddenGroups({});
-    toast({ title: "تم الاستيراد", description: `${parsed.length} رحلة` });
+    toast({ title: "تم الاستيراد", description: `${parsed.length} رح��ة` });
   };
 
   const fetchFromApi = async () => {
@@ -463,6 +512,9 @@ export default function Index() {
                       <SelectItem value="delay">تأخير</SelectItem>
                       <SelectItem value="advance">تعجيل</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
+                      <SelectItem value="number_change">تغيير رقم الرحلة</SelectItem>
+                      <SelectItem value="number_time_delay">تغيير رقم ووقت (تأخير)</SelectItem>
+                      <SelectItem value="number_time_advance">تغيير رقم ووقت (تعجيل)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -479,14 +531,24 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <Label htmlFor="newFlightNumber">رقم الرحلة الجديد</Label>
+                  <Input id="newFlightNumber" value={newFlightNumber} onChange={(e) => setNewFlightNumber(e.target.value)} placeholder="أدخل الرقم الجديد إن وُجد" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="supplier">السبلاير / التوقيع</Label>
                   <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
                 </div>
               </div>
             </CardContent>
+            <CardContent className="space-y-2">
+              <Label>المعاينة (قابلة للتعديل)</Label>
+              <Textarea value={singleEdited} onChange={(e) => { setSingleEdited(e.target.value); setSingleDirty(true); }} className="min-h-[180px]" />
+            </CardContent>
             <CardFooter className="flex gap-2 justify-end">
-              <Button onClick={() => { save(previewSingle, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حفظ تبليغ عام</Button>
-              <Button variant="secondary" onClick={() => copy(previewSingle)}>نسخ تبليغ عام</Button>
+              <Button onClick={() => { save(singleEdited, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حفظ تبليغ عام</Button>
+              <Button variant="secondary" onClick={() => copy(singleEdited)}>نسخ تبليغ عام</Button>
             </CardFooter>
           </Card>
 
@@ -538,8 +600,11 @@ export default function Index() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex items-center justify-between">
             <CardTitle>التبليغات حسب userSearchTitle</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => { setCopiedGroups({}); setDeliveredGroups({}); setHiddenGroups({}); toast({ title: "تمت إعادة الضبط", description: "تصفير حالات التبليغ" }); }}>تصفير الحالات</Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Supplier notes controls */}
@@ -569,7 +634,7 @@ export default function Index() {
                       <CardTitle className="text-base">{bn.groupName} <span className="text-xs text-muted-foreground">({bn.pnrs.length} PNR)</span></CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Textarea readOnly value={bn.body} className="min-h-[260px]" />
+                      <Textarea value={editedBodies[bn.id] ?? bn.body} onChange={(e) => setEditedBodies((m) => ({ ...m, [bn.id]: e.target.value }))} className="min-h-[260px]" />
                       <div className="mt-2 text-xs text-muted-foreground text-right">{bn.supplier}</div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
@@ -577,13 +642,13 @@ export default function Index() {
                         {hiddenGroups[bn.id] ? "إظهار" : "إخفاء"}
                       </Button>
                       <div className="flex gap-2">
-                        <Button onClick={() => { copy(bn.body); setCopiedGroups((m) => ({ ...m, [bn.id]: true })); }}>نسخ</Button>
+                        <Button onClick={() => { const msg = editedBodies[bn.id] ?? bn.body; copy(msg); setCopiedGroups((m) => ({ ...m, [bn.id]: true })); }}>نسخ</Button>
                         {deliveredGroups[bn.id] ? (
                           <Button disabled className="bg-green-600 text-white hover:bg-green-600 cursor-default">تم التبليغ</Button>
                         ) : copiedGroups[bn.id] ? (
                           <Button className="bg-orange-600 text-white hover:bg-orange-700" onClick={() => setDeliveredGroups((m) => ({ ...m, [bn.id]: true }))}>تم التبليغ</Button>
                         ) : (
-                          <Button variant="outline" onClick={() => save(bn.body, `${bn.groupName} | ${origin}-${destination} ${flightNumber} | ${bn.supplier}`)}>حفظ</Button>
+                          <Button variant="outline" onClick={() => { const msg = editedBodies[bn.id] ?? bn.body; save(msg, `${bn.groupName} | ${origin}-${destination} ${flightNumber} | ${bn.supplier}`); }}>حفظ</Button>
                         )}
                       </div>
                     </CardFooter>
