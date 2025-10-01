@@ -311,11 +311,6 @@ export default function Index() {
     localStorage.setItem("alerts-trips", JSON.stringify(trips));
   }, [trips]);
 
-  const [history, setHistory] = useState<NotificationItem[]>([]);
-  const [editedBodies, setEditedBodies] = useState<Record<string, string>>({});
-  const [singleEdited, setSingleEdited] = useState("");
-  const [singleDirty, setSingleDirty] = useState(false);
-
   useEffect(() => {
     localStorage.setItem("alerts-history", JSON.stringify(history));
   }, [history]);
@@ -501,7 +496,7 @@ export default function Index() {
                   <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="flightNumber">رقم الرحلة</Label>
+                  <Label htmlFor="flightNumber">رقم ال��حلة</Label>
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
               </div>
