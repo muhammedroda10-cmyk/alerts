@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { ArrowLeftRight } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -251,7 +252,7 @@ export default function Index() {
       return [
         "تحية طيبة ...",
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
-        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
+        `رقم الرحلة ال��ديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
         "",
         `الوقت القديم : *${oldTime}*`,
@@ -282,7 +283,7 @@ export default function Index() {
         `نأسف لإبلاغ��م بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
-        "يرجى التواصل لترتيب البدائل المناسبة",
+        "يرجى التواصل لترتيب البدائل ا��مناسبة",
         "",
       ].join("\n");
     }
@@ -323,7 +324,7 @@ export default function Index() {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-        toast({ title: "تم النسخ", description: "النص في الحافظة" });
+        toast({ title: "ت�� النسخ", description: "النص في الحافظة" });
         return;
       }
       throw new Error("Clipboard API unavailable");
@@ -407,7 +408,11 @@ export default function Index() {
       }
       const parsed = parseTrips(JSON.stringify(data));
       setTrips(parsed);
+      // Auto reset states on new fetch
       setHiddenGroups({});
+      setCopiedGroups({});
+      setDeliveredGroups({});
+      setEditedBodies({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
       toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الا��صال" });
@@ -429,7 +434,7 @@ export default function Index() {
         const legDate = normalizeDateForCompare(t.date);
         if (legDate && wantDate && legDate !== wantDate) continue;
       }
-      const key = String(t.title || "غير معروف").trim();
+      const key = String(t.title || "غي�� معروف").trim();
       const list = map.get(key) ?? [];
       if (!list.find((ps) => ps.pnr === t.pnr)) list.push({ pnr: t.pnr, supplier: String(t.supplier || "غير معروف") });
       map.set(key, list);
@@ -480,10 +485,15 @@ export default function Index() {
               <CardTitle>بيانات الرحلة</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
                 <div>
                   <Label htmlFor="origin">الروت - من</Label>
                   <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
+                </div>
+                <div className="pb-1 flex items-center justify-center">
+                  <Button type="button" variant="outline" size="icon" aria-label="عكس الروت" title="عكس الروت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
+                    <ArrowLeftRight className="h-4 w-4" />
+                  </Button>
                 </div>
                 <div>
                   <Label htmlFor="destination">الروت - إلى</Label>
