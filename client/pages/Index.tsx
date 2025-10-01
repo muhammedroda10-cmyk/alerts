@@ -186,6 +186,12 @@ export default function Index() {
   const [showTokenDialog, setShowTokenDialog] = useState(false);
   const [tokenCandidate, setTokenCandidate] = useState("");
 
+  // Notification/history and editable state
+  const [history, setHistory] = useState<NotificationItem[]>([]);
+  const [editedBodies, setEditedBodies] = useState<Record<string, string>>({});
+  const [singleEdited, setSingleEdited] = useState("");
+  const [singleDirty, setSingleDirty] = useState(false);
+
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
     return toMinutes(newTime) < toMinutes(oldTime);
@@ -216,7 +222,7 @@ export default function Index() {
     }
 
     if (type === "advance") {
-      const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay ? ` (ال��وم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "تحية طيبة ...",
         `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
@@ -273,7 +279,7 @@ export default function Index() {
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
-        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `نأسف لإبلاغ��م بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         "يرجى التواصل لترتيب البدائل المناسبة",
