@@ -223,7 +223,7 @@ export default function Index() {
     }
 
     if (type === "advance") {
-      const prevDayNote = isPrevDay ? ` (ال��وم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "تحية طيبة ...",
         `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
@@ -252,7 +252,7 @@ export default function Index() {
       return [
         "تحية طيبة ...",
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
-        `رقم الرحلة ال��ديم ( *${flightNumber}* ) على طيران ${airline}`,
+        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
         "",
         `الوقت القديم : *${oldTime}*`,
@@ -266,7 +266,7 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "تحية طيبة ...",
-        `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تعجيل)`,
+        `تم تغيير رقم ووق�� الرحلة   ${route}  بتاريخ *${dateFmt}* (تعجيل)`,
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
         "",
@@ -280,10 +280,10 @@ export default function Index() {
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
-        `نأسف لإبلاغ��م بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
-        "يرجى التواصل لترتيب البدائل ا��مناسبة",
+        "يرجى التواصل لترتيب البدائل المناسبة",
         "",
       ].join("\n");
     }
