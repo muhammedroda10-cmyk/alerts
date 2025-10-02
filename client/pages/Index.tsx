@@ -233,6 +233,7 @@ export default function Index() {
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
+        "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
       ].join("\n");
