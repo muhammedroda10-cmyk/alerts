@@ -162,6 +162,7 @@ export default function Index() {
   const [airline, setAirline] = useState("Aseman Airlines");
   const [flightNumber, setFlightNumber] = useState("6568");
   const [newFlightNumber, setNewFlightNumber] = useState("");
+  const [newAirline, setNewAirline] = useState("");
   const [date, setDate] = useState("2025-09-21");
   const [origin, setOrigin] = useState("IKA");
   const [destination, setDestination] = useState("BGW");
@@ -241,7 +242,7 @@ export default function Index() {
         "تحية طيبة ...",
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
       ].filter(Boolean).join("\n");
@@ -253,7 +254,7 @@ export default function Index() {
         "تحية طيبة ...",
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
@@ -266,9 +267,9 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "تحية طيبة ...",
-        `تم تغيير رقم ووق�� الرحلة   ${route}  بتاريخ *${dateFmt}* (تعجيل)`,
+        `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تعجيل)`,
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )` : "",
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
@@ -289,7 +290,7 @@ export default function Index() {
     }
 
     return "";
-  }, [airline, date, destination, flightNumber, newFlightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
+  }, [airline, newAirline, date, destination, flightNumber, newFlightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
 
   const previewSingle = useMemo(() => {
     return [basePreview, `PNR : `, "", supplier].join("\n");
@@ -589,6 +590,10 @@ export default function Index() {
                 <div>
                   <Label htmlFor="newFlightNumber">رقم الرحلة الجديد</Label>
                   <Input id="newFlightNumber" value={newFlightNumber} onChange={(e) => setNewFlightNumber(e.target.value)} placeholder="أدخل الرقم الجديد إن وُجد" />
+                </div>
+                <div>
+                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
+                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
