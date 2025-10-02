@@ -244,7 +244,9 @@ export default function Index() {
         "تحية طيبة ...",
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
+        "",
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
       ].filter(Boolean).join("\n");
