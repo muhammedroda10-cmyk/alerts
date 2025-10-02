@@ -283,7 +283,7 @@ export default function Index() {
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
-      ].filter(Boolean).join("\n");
+      ].join("\n");
     }
 
     if (type === "cancel") {
