@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleBookingProxy } from "./routes/booking-proxy";
+import { handleGeminiParse } from "./routes/gemini-parse";
 
 export function createServer() {
   const app = express();
