@@ -5,6 +5,7 @@ const RequestSchema = z.object({
   text: z.string().min(1),
   apiKey: z.string().optional(),
   targetLocale: z.string().optional(),
+  model: z.string().optional(),
 });
 
 function normalizeDigits(input: string): string {
@@ -80,7 +81,7 @@ function normalizeDateToISO(input?: string): string | undefined {
 function normalizeTime24(input?: string): string | undefined {
   if (!input) return undefined;
   const s = normalizeDigits(String(input)).replace(/\s/g, "");
-  const m = s.match(/(\d{1,2})[:٫٫](\d{1,2})/);
+  const m = s.match(/(\d{1,2})[:٫.](\d{1,2})/);
   if (!m) return undefined;
   const hh = Math.min(23, Math.max(0, parseInt(m[1], 10)));
   const mm = Math.min(59, Math.max(0, parseInt(m[2], 10)));
@@ -107,7 +108,8 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
 
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + encodeURIComponent(key);
+    const preferred = parsed.model && parsed.model.trim() ? [parsed.model.trim()] : [];
+    const models = [...preferred, "gemini-1.5-flash-latest", "gemini-1.5-flash-8b-latest", "gemini-1.0-pro", "gemini-pro"];
 
     const payload = {
       contents: [
@@ -118,18 +120,31 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       },
     } as const;
 
-    const r = await fetch(geminiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let okData: any = null;
+    let okText = "";
+    let lastStatus = 500;
+    let lastBody = "";
 
-    if (!r.ok) {
-      const t = await r.text();
-      return res.status(r.status).json({ error: true, message: t });
+    for (const model of models) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (r.ok) {
+        okData = await r.json();
+        okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        break;
+      } else {
+        lastStatus = r.status;
+        lastBody = await r.text();
+        // Try next model on NOT_FOUND or method unsupported
+        if (!(r.status === 404 || /NOT_FOUND|not found|unsupported/i.test(lastBody))) break;
+      }
     }
-    const data = await r.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+    if (!okData) {
+      return res.status(lastStatus).json({ error: true, message: lastBody || "Gemini request failed" });
+    }
+
+    const text = okText;
     const obj = extractJson(text);
 
     const airline = String(obj.airline || "").trim();
