@@ -108,8 +108,9 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
 
-    const preferred = parsed.model && parsed.model.trim() ? [parsed.model.trim()] : [];
-    const models = [...preferred, "gemini-1.5-flash-latest", "gemini-1.5-flash-8b-latest", "gemini-1.0-pro", "gemini-pro"];
+    const msel = (parsed.model || "").trim();
+    const preferred = msel ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`] : [];
+    const models = [...preferred, "gemini-2.5-flash", "gemini-2.5-flash-latest", "gemini-1.5-flash-latest", "gemini-1.5-flash-8b-latest"];
 
     const payload = {
       contents: [
@@ -126,18 +127,23 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     let lastBody = "";
 
     for (const model of models) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (r.ok) {
-        okData = await r.json();
-        okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-        break;
-      } else {
-        lastStatus = r.status;
-        lastBody = await r.text();
-        // Try next model on NOT_FOUND or method unsupported
-        if (!(r.status === 404 || /NOT_FOUND|not found|unsupported/i.test(lastBody))) break;
+      for (const ver of ["v1beta", "v1"]) {
+        const url = `https://generativelanguage.googleapis.com/${ver}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        if (r.ok) {
+          okData = await r.json();
+          okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+          break;
+        } else {
+          lastStatus = r.status;
+          lastBody = await r.text();
+          if (!(r.status === 404 || /NOT_FOUND|not found|unsupported/i.test(lastBody))) {
+            // Non-recoverable error, stop trying further
+            break;
+          }
+        }
       }
+      if (okData) break;
     }
 
     if (!okData) {

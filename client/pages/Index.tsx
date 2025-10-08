@@ -191,8 +191,10 @@ export default function Index() {
   // AI parse states
   const [aiText, setAiText] = useState("");
   const [geminiKey, setGeminiKey] = useState("");
+  const [geminiModel, setGeminiModel] = useState("gemini-2.5-flash");
   const [aiLoading, setAiLoading] = useState(false);
   const GEMINI_KEY_STORAGE = "gemini_api_key";
+  const GEMINI_MODEL_STORAGE = "gemini_model";
 
   // Notification/history and editable state
   const [history, setHistory] = useState<NotificationItem[]>([]);
@@ -223,7 +225,7 @@ export default function Index() {
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         `الوقت القديم : *${oldTime}*`,
-        `الوقت ا��جديد : *${newTime}*${nextDayNote}`,
+        `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -326,11 +328,17 @@ export default function Index() {
   useEffect(() => {
     const savedGemini = localStorage.getItem(GEMINI_KEY_STORAGE);
     if (savedGemini) setGeminiKey(savedGemini);
+    const savedModel = localStorage.getItem(GEMINI_MODEL_STORAGE);
+    if (savedModel) setGeminiModel(savedModel);
   }, []);
 
   useEffect(() => {
     if (geminiKey) localStorage.setItem(GEMINI_KEY_STORAGE, geminiKey);
   }, [geminiKey]);
+
+  useEffect(() => {
+    if (geminiModel) localStorage.setItem(GEMINI_MODEL_STORAGE, geminiModel);
+  }, [geminiModel]);
 
   useEffect(() => {
     localStorage.setItem("alerts-trips", JSON.stringify(trips));
@@ -404,7 +412,7 @@ export default function Index() {
       const res = await fetch("/api/ai/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: aiText, apiKey: geminiKey || undefined }),
+        body: JSON.stringify({ text: aiText, apiKey: geminiKey || undefined, model: geminiModel || undefined }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data?.message || "فشل التحليل");
@@ -540,7 +548,7 @@ export default function Index() {
 
         <Card>
           <CardHeader>
-            <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
+            <CardTitle>استخر��ج تلقائي من نص التبليغ (Gemini)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
@@ -551,6 +559,10 @@ export default function Index() {
               <Label htmlFor="geminiKey">Gemini API Key</Label>
               <Input id="geminiKey" type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)" />
               <p className="text-xs text-muted-foreground">يُحفظ محليًا في المتصفح فقط.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="geminiModel">Model</Label>
+              <Input id="geminiModel" value={geminiModel} onChange={(e) => setGeminiModel(e.target.value)} placeholder="مثال: gemini-2.5-flash" />
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
