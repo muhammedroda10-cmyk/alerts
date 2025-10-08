@@ -98,7 +98,8 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
       "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
       "Rules:",
-      "- Use ISO date format yyyy-MM-dd. If the date is in Jalali (e.g., 1403/01/02), convert to Gregorian.",
+      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
+      "- Use ISO date format yyyy-MM-dd. If the date is in Jalali/Shamsi (e.g., 1403/01/02), convert to Gregorian.",
       "- Use 24-hour HH:mm for times.",
       "- Normalize digits to Western numerals.",
       "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
@@ -156,8 +157,21 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const airline = String(obj.airline || "").trim();
     const flightNumber = String(obj.flightNumber || obj.flight_no || obj.flight || "").toString().trim();
     const dateISO = normalizeDateToISO(String(obj.date || obj.flightDate || ""));
-    const origin = String(obj.origin || obj.from || "").toString().trim();
-    const destination = String(obj.destination || obj.to || "").toString().trim();
+    const originRaw = String(obj.origin || obj.from || "").toString().trim();
+    const destinationRaw = String(obj.destination || obj.to || "").toString().trim();
+
+    const toIata = (s: string): string => {
+      const up = (s || "").trim().toUpperCase();
+      if (/^[A-Z]{3}$/.test(up)) return up;
+      const paren = up.match(/\(([A-Z]{3})\)/);
+      if (paren) return paren[1];
+      const code = up.match(/\b[A-Z]{3}\b/);
+      if (code) return code[0];
+      return up;
+    };
+
+    const origin = toIata(originRaw);
+    const destination = toIata(destinationRaw);
 
     const rawType = String(obj.type || "").toLowerCase();
     const newTime = normalizeTime24(obj.newTime || obj.time || obj.new_time || "");
