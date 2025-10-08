@@ -24,5 +24,8 @@ export function createServer() {
   // Proxy to external booking API
   app.post("/api/booking/flight", handleBookingProxy);
 
+  // AI parse route
+  app.post("/api/ai/parse", handleGeminiParse);
+
   return app;
 }
