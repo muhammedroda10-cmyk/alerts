@@ -188,6 +188,12 @@ export default function Index() {
   const [showTokenDialog, setShowTokenDialog] = useState(false);
   const [tokenCandidate, setTokenCandidate] = useState("");
 
+  // AI parse states
+  const [aiText, setAiText] = useState("");
+  const [geminiKey, setGeminiKey] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const GEMINI_KEY_STORAGE = "gemini_api_key";
+
   // Notification/history and editable state
   const [history, setHistory] = useState<NotificationItem[]>([]);
   const [editedBodies, setEditedBodies] = useState<Record<string, string>>({});
@@ -217,7 +223,7 @@ export default function Index() {
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         `الوقت القديم : *${oldTime}*`,
-        `الوقت الجديد : *${newTime}*${nextDayNote}`,
+        `الوقت ا��جديد : *${newTime}*${nextDayNote}`,
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -318,6 +324,15 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
+    const savedGemini = localStorage.getItem(GEMINI_KEY_STORAGE);
+    if (savedGemini) setGeminiKey(savedGemini);
+  }, []);
+
+  useEffect(() => {
+    if (geminiKey) localStorage.setItem(GEMINI_KEY_STORAGE, geminiKey);
+  }, [geminiKey]);
+
+  useEffect(() => {
     localStorage.setItem("alerts-trips", JSON.stringify(trips));
   }, [trips]);
 
@@ -377,6 +392,41 @@ export default function Index() {
     setTrips(parsed);
     setHiddenGroups({});
     toast({ title: "تم الاستيراد", description: `${parsed.length} رح��ة` });
+  };
+
+  const parseWithGemini = async () => {
+    if (!aiText.trim()) {
+      toast({ title: "نص مفقود", description: "أدخل نص التبليغ أولًا" });
+      return;
+    }
+    try {
+      setAiLoading(true);
+      const res = await fetch("/api/ai/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: aiText, apiKey: geminiKey || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data?.message || "فشل التحليل");
+      const d = data.data || {};
+
+      if ((d.airline || "").trim()) setAirline(d.airline);
+      if ((d.flightNumber || "").trim()) setFlightNumber(String(d.flightNumber));
+      if ((d.date || "").trim()) setDate(String(d.date));
+      if ((d.origin || "").trim()) setOrigin(String(d.origin));
+      if ((d.destination || "").trim()) setDestination(String(d.destination));
+      if ((d.oldTime || "").trim()) setOldTime(String(d.oldTime));
+      if ((d.newTime || "").trim()) setNewTime(String(d.newTime));
+      if ((d.newFlightNumber || "").trim()) setNewFlightNumber(String(d.newFlightNumber));
+      if ((d.newAirline || "").trim()) setNewAirline(String(d.newAirline));
+      if ((d.type || "").trim()) setType(String(d.type));
+
+      toast({ title: "تم الاستخراج", description: "تم تعبئة الحقول من النص" });
+    } catch (e: any) {
+      toast({ title: "خطأ في التحليل", description: e?.message || "تعذر الاتصال" });
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const fetchFromApi = async () => {
@@ -487,6 +537,26 @@ export default function Index() {
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
           <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="aiText">نص التبليغ</Label>
+              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق نص التبليغ هنا بأي لغة" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="geminiKey">Gemini API Key</Label>
+              <Input id="geminiKey" type="password" value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)" />
+              <p className="text-xs text-muted-foreground">يُحفظ محليًا في المتصفح فقط.</p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخراج"}</Button>
+          </CardFooter>
+        </Card>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
           <Card>
