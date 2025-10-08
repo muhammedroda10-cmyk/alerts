@@ -356,7 +356,7 @@ export default function Index() {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-        toast({ title: "ت�� النسخ", description: "النص في الحافظة" });
+        toast({ title: "تم النسخ", description: "النص في الحافظة" });
         return;
       }
       throw new Error("Clipboard API unavailable");
