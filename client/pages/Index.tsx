@@ -429,6 +429,17 @@ export default function Index() {
       if ((d.newAirline || "").trim()) setNewAirline(String(d.newAirline));
       if ((d.type || "").trim()) setType(String(d.type));
 
+      // Also fill API proxy fields (dates and flight number)
+      if ((d.date || "").trim()) {
+        const dd = String(d.date).slice(0, 10);
+        setApiDepartureFrom(dd);
+        setApiDepartureTo(dd);
+      }
+      if ((d.flightNumber || "").trim()) {
+        const num = String(d.flightNumber).match(/(\d{2,})/);
+        setApiFlightNumber(num ? num[1] : String(d.flightNumber));
+      }
+
       toast({ title: "تم الاستخراج", description: "تم تعبئة الحقول من النص" });
     } catch (e: any) {
       toast({ title: "خطأ في التحليل", description: e?.message || "تعذر الاتصال" });
@@ -543,7 +554,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّع�� حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         <Card>
