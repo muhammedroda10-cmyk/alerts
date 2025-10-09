@@ -38,31 +38,46 @@ function extractJson(text: string): any {
   }
 }
 
-function div(a: number, b: number) { return ~~(a / b); }
-
-function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
+// Accurate Jalali<->Gregorian conversion (based on jalaali-js)
+function g2d(gy: number, gm: number, gd: number) {
+  const a = Math.floor((gm - 8) / 6);
+  const gy2 = gy + Math.floor(a) + 100100;
+  const d = Math.floor(1461 * gy2 / 4) + Math.floor((153 * ((gm + 9) % 12) + 2) / 5) + gd - 34840408;
+  return d - Math.floor(Math.floor(gy2 / 100) * 3 / 4) + 752;
+}
+function d2g(j: number): [number, number, number] {
+  let j2 = 4 * j + 139361631;
+  j2 = j2 + Math.floor(Math.floor(4 * j + 183187720) / 146097) * 3 / 4 * 4 - 3908;
+  const i = Math.floor((j2 % 1461) / 4) * 5 + 308;
+  const gd = Math.floor((i % 153) / 5) + 1;
+  const gm = Math.floor(i / 153) % 12 + 1;
+  const gy = Math.floor(j2 / 1461) - 100100 + Math.floor((8 - gm) / 6);
+  return [gy, gm, gd];
+}
+function jalCal(jy: number) {
   const breaks = [-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178];
-  let gy = jy + 621, leapJ = -14, jp = breaks[0], jmIndex = 1;
-  while (jmIndex < breaks.length && jy >= breaks[jmIndex]) { const jump = breaks[jmIndex] - jp; leapJ += div(jump, 33) * 8 + div(jump % 33, 4); jp = breaks[jmIndex]; jmIndex++; }
-  const n = jy - jp; leapJ += div(n, 33) * 8 + div(n % 33 + 3, 4);
-  let march = 20 + leapJ - ((div(gy, 4) - div(gy, 100) + div(gy, 400)) - 2);
-  if (jumping(jy, breaks)) { gy++; march = march + ((div(gy, 4) - div(gy, 100) + div(gy, 400)) - 2) - ((div(gy - 1, 4) - div(gy - 1, 100) + div(gy - 1, 400)) - 2); }
-  let gDayNo = march + jd - 1;
-  if (jm <= 6) gDayNo += (jm - 1) * 31; else gDayNo += (jm - 7) * 30 + 186;
-  return dayToGregorian(gy, gDayNo);
-
-  function jumping(y: number, br: number[]) { let i = 1; while (i < br.length && y >= br[i]) i++; return (br[i] - br[i - 1]) === 33; }
-  function dayToGregorian(gy0: number, dayNo: number): [number, number, number] {
-    const mdays = [31, (isLeap(gy0) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let gm = 1; let gd = 0; let d = dayNo;
-    for (let i = 0; i < 12; i++) {
-      const v = mdays[i];
-      if (d < v) { gm = i + 1; gd = d + 1; break; }
-      d -= v;
-    }
-    return [gy0, gm, gd];
+  let bl = breaks.length;
+  let gy = jy + 621;
+  let leapJ = -14;
+  let jp = breaks[0];
+  let jm = 1;
+  while (jm < bl && jy >= breaks[jm]) {
+    const jump = breaks[jm] - jp;
+    leapJ = leapJ + Math.floor(jump / 33) * 8 + Math.floor((jump % 33) / 4);
+    jp = breaks[jm];
+    jm += 1;
   }
-  function isLeap(y: number) { return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0); }
+  const n = jy - jp;
+  leapJ = leapJ + Math.floor(n / 33) * 8 + Math.floor((n % 33 + 3) / 4);
+  const march = 20 + leapJ - (Math.floor((gy) / 4) - Math.floor((gy) / 100) + Math.floor((gy) / 400));
+  return { gy, march };
+}
+function j2d(jy: number, jm: number, jd: number) {
+  const r = jalCal(jy);
+  return g2d(r.gy, 3, r.march) + (jm <= 6 ? (jm - 1) * 31 : (jm - 7) * 30 + 186) + (jd - 1);
+}
+function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
+  return d2g(j2d(jy, jm, jd));
 }
 
 function normalizeDateToISO(input?: string): string | undefined {
