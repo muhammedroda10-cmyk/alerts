@@ -239,7 +239,7 @@ export default function Index() {
         `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
-        `الوقت القديم : *${oldTime}*`,
+        `ال��قت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
@@ -267,7 +267,7 @@ export default function Index() {
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الر��لة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
@@ -374,7 +374,7 @@ export default function Index() {
         const ok = document.execCommand("copy");
         document.body.removeChild(ta);
         if (ok) {
-          toast({ title: "تم النسخ", description: "النص في الحافظة" });
+          toast({ title: "تم النسخ", description: "ال��ص في الحافظة" });
           return;
         }
         throw new Error("execCommand failed");
@@ -431,7 +431,7 @@ export default function Index() {
 
       // Also fill API proxy fields (dates and flight number)
       if ((d.date || "").trim()) {
-        const dd = String(d.date).slice(0, 10);
+        const dd = String(d.date).slice(0, 10).replace(/\//g, "-");
         setApiDepartureFrom(dd);
         setApiDepartureTo(dd);
       }
@@ -694,7 +694,7 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
-                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
+                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شرك�� الطيران الجديدة إن وُجدت" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
