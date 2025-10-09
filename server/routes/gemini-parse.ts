@@ -80,17 +80,51 @@ function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number,
   return d2g(j2d(jy, jm, jd));
 }
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 function normalizeDateToISO(input?: string): string | undefined {
-  if (!input) return undefined;
-  const s = normalizeDigits(String(input)).replace(/\./g, "/").replace(/-/g, "/").trim();
-  const m = s.match(/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/);
-  if (!m) return undefined;
-  const y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
-  if (y >= 1300 && y <= 1499) {
-    const [gy, gm, gd] = jalaliToGregorian(y, mo, d);
-    return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
-  }
-  return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+    if (!input) return undefined;
+    const s = normalizeDigits(String(input)).trim();
+    
+    // 1. Check for standard ISO format (YYYY-MM-DD) which the AI should return
+    const isoMatch = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (isoMatch) {
+        const y = parseInt(isoMatch[1], 10), mo = parseInt(isoMatch[2], 10), d = parseInt(isoMatch[3], 10);
+        
+        // This handles cases where the AI returns a Jalali year in a YYYY/MM/DD format
+        if (y >= 1300 && y <= 1499) {
+            const [gy, gm, gd] = jalaliToGregorian(y, mo, d);
+            return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
+        }
+        return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+    }
+
+    // 2. Check for Jalali day-month format (e.g., "19 مهر")
+    const shamsiMonths: Record<string, number> = {
+        "فروردین": 1, "اردیبهشت": 2, "خرداد": 3, "تیر": 4, "مرداد": 5, "شهریور": 6, 
+        "مهر": 7, "آبان": 8, "آذر": 9, "دی": 10, "بهمن": 11, "اسفند": 12
+    };
+
+    // This regex looks for: (Day) (MonthName)
+    const jalaliMonthMatch = s.match(/(\d{1,2})\s+([\u0600-\u06FF]+)/);
+    if (jalaliMonthMatch) {
+        const day = parseInt(jalaliMonthMatch[1], 10);
+        const monthName = jalaliMonthMatch[2];
+        const month = shamsiMonths[monthName] || 0; // Get the month number (1-12)
+
+        if (month > 0) {
+            // **CRITICAL STEP**: Find the current Jalali Year (1404 for 2025)
+            // This is a simplified way to guess the Jalali year based on the current Gregorian year
+            const todayJalali = d2g(g2d(CURRENT_YEAR, new Date().getMonth() + 1, new Date().getDate()));
+            const jy = todayJalali[0]; 
+
+            const [gy, gm, gd] = jalaliToGregorian(jy, month, day);
+            return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
+        }
+    }
+    
+    // Fallback if no specific format is matched
+    return undefined; 
 }
 
 function normalizeTime24(input?: string): string | undefined {
