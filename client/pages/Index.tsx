@@ -239,7 +239,7 @@ export default function Index() {
         `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
-        `ال��قت القديم : *${oldTime}*`,
+        `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
@@ -267,7 +267,7 @@ export default function Index() {
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الر��لة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
@@ -374,7 +374,7 @@ export default function Index() {
         const ok = document.execCommand("copy");
         document.body.removeChild(ta);
         if (ok) {
-          toast({ title: "تم النسخ", description: "ال��ص في الحافظة" });
+          toast({ title: "تم النسخ", description: "النص في الحافظة" });
           return;
         }
         throw new Error("execCommand failed");
@@ -399,7 +399,7 @@ export default function Index() {
     const parsed = parseTrips(rawTrips);
     setTrips(parsed);
     setHiddenGroups({});
-    toast({ title: "تم الاستيراد", description: `${parsed.length} رح��ة` });
+    toast({ title: "تم الاستيراد", description: `${parsed.length} رحلة` });
   };
 
   const parseWithGemini = async () => {
@@ -493,7 +493,7 @@ export default function Index() {
       setEditedBodies({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
-      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الا��صال" });
+      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
     }
   };
 
@@ -512,7 +512,7 @@ export default function Index() {
         const legDate = normalizeDateForCompare(t.date);
         if (legDate && wantDate && legDate !== wantDate) continue;
       }
-      const key = String(t.title || "غي�� معروف").trim();
+      const key = String(t.title || "غير معروف").trim();
       const list = map.get(key) ?? [];
       if (!list.find((ps) => ps.pnr === t.pnr)) list.push({ pnr: t.pnr, supplier: String(t.supplier || "غير معروف") });
       map.set(key, list);
@@ -554,12 +554,12 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّع�� حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>استخر��ج تلقائي من نص التبليغ (Gemini)</CardTitle>
+            <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
@@ -694,7 +694,7 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
-                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شرك�� الطيران الجديدة إن وُجدت" />
+                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
