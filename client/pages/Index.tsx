@@ -559,7 +559,7 @@ export default function Index() {
 
         
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <Card>
           <CardHeader>
             <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
