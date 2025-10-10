@@ -629,7 +629,7 @@ export default function Index() {
             </CardFooter>
           </Card>
 
-          <Card className="col-span-1">
+          <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>بيانات الرحلة</CardTitle>
             </CardHeader>
