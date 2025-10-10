@@ -557,6 +557,9 @@ export default function Index() {
           <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
+        
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         <Card>
           <CardHeader>
             <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
@@ -579,9 +582,8 @@ export default function Index() {
           <CardFooter className="flex justify-end gap-2">
             <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخراج"}</Button>
           </CardFooter>
-        </Card>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+          </Card>
+        
           <Card>
             <CardHeader>
               <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
@@ -627,7 +629,7 @@ export default function Index() {
             </CardFooter>
           </Card>
 
-          <Card className="xl:col-span-2">
+          <Card className="xl:col-span-1">
             <CardHeader>
               <CardTitle>بيانات الرحلة</CardTitle>
             </CardHeader>
