@@ -635,9 +635,10 @@ export default function Index() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" class="w-[20px] h-[20px] md:w-[24px] md:h-[24px] ltr:scale-x-[-1] "><g fill="currentColor" clip-path="url(#flight-departure_svg__clip0_7958_25077)"><path d="M2.25 20h21a.75.75 0 0 0 0-1.5h-21a.75.75 0 0 0 0 1.5M5.195 4.879l4.168 1.517 5.271-2.714c.406-.208.88-.239 1.309-.082l1.402.51a.41.41 0 0 1 .14.683L13.988 8.08l5.36 1.951c.406.148.853.123 1.24-.068l.758-.374c.4-.198.864-.224 1.285-.07l1.172.426c.276.1.36.45.159.665l-.827.882a6.32 6.32 0 0 1-4.413 1.994l-.563.018a6.3 6.3 0 0 1-2.37-.38L2.25 8.175c-.599-.218-.967-.868-.77-1.475a2.87 2.87 0 0 1 3.715-1.818zM9.062 12.26l1.315 3.12c.173.422.518.747.948.903l1.402.511a.41.41 0 0 0 .549-.431l-.316-2.685z"></path></g></svg>
+                
                 <div>
                   <Label htmlFor="origin">الروت - من</Label>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" class="w-[20px] h-[20px] md:w-[24px] md:h-[24px] ltr:scale-x-[-1] "><g fill="currentColor" clip-path="url(#flight-departure_svg__clip0_7958_25077)"><path d="M2.25 20h21a.75.75 0 0 0 0-1.5h-21a.75.75 0 0 0 0 1.5M5.195 4.879l4.168 1.517 5.271-2.714c.406-.208.88-.239 1.309-.082l1.402.51a.41.41 0 0 1 .14.683L13.988 8.08l5.36 1.951c.406.148.853.123 1.24-.068l.758-.374c.4-.198.864-.224 1.285-.07l1.172.426c.276.1.36.45.159.665l-.827.882a6.32 6.32 0 0 1-4.413 1.994l-.563.018a6.3 6.3 0 0 1-2.37-.38L2.25 8.175c-.599-.218-.967-.868-.77-1.475a2.87 2.87 0 0 1 3.715-1.818zM9.062 12.26l1.315 3.12c.173.422.518.747.948.903l1.402.511a.41.41 0 0 0 .549-.431l-.316-2.685z"></path></g></svg>
                   <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                 </div>
                 <div className="pb-1 flex items-center justify-center">
