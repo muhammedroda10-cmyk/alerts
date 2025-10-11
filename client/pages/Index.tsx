@@ -724,7 +724,7 @@ export default function Index() {
 
         <Card>
           <CardHeader className="flex items-center justify-between">
-            <CardTitle>التبليغات حسب userSearchTitle</CardTitle>
+            <CardTitle>التبليغات حسب الشركة</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => { setCopiedGroups({}); setDeliveredGroups({}); setHiddenGroups({}); toast({ title: "تمت إعادة الضبط", description: "تصفير حالات التبليغ" }); }}>تصفير الحالات</Button>
             </div>
