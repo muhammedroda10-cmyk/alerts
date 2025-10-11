@@ -662,12 +662,13 @@ export default function Index() {
                   <Label htmlFor="flightNumber">رقم الرحلة</Label>
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="date">تاريخ الرحلة</Label>
                   <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                
                 <div>
                   <Label htmlFor="type">نوع التبليغ</Label>
                   <Select value={type} onValueChange={setType}>
