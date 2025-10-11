@@ -651,12 +651,13 @@ export default function Index() {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 24" class="w-[20px] h-[20px] md:w-[24px] md:h-[24px] ltr:scale-x-[-1] "><path fill="currentColor" d="M1.75 20h21a.75.75 0 0 0 0-1.5h-21a.75.75 0 0 0 0 1.5M4.165 11.175l4.168-1.518 2.293-5.467c.177-.42.52-.749.95-.905l1.402-.51a.41.41 0 0 1 .546.432l-.566 4.767 5.36-1.951c.405-.148.732-.455.906-.85l.34-.774c.18-.41.52-.727.94-.88l1.172-.426c.276-.1.565.114.548.407l-.066 1.207a6.32 6.32 0 0 1-2.099 4.365l-.42.375c-.601.538-1.3.956-2.06 1.231L4.027 15.591c-.6.218-1.299-.044-1.539-.635a2.87 2.87 0 0 1 1.678-3.781M11.872 14.344l3.012 1.545c.405.212.878.24 1.308.083l1.402-.51a.41.41 0 0 0 .143-.683l-1.968-1.854z"></path></svg>
                   <Input id="destination" value={destination} onChange={(e) => setDestination(e.target.value)} />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="airline">شركة الطيران</Label>
                   <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                
                 <div>
                   <Label htmlFor="flightNumber">رقم الرحلة</Label>
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
