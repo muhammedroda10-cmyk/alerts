@@ -634,7 +634,7 @@ export default function Index() {
               <CardTitle>بيانات الرحلة</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+              <div className="grid grid-cols-[1fr_auto_1fr_1fr] items-end gap-4">
                 
                 <div>
                   <Label htmlFor="origin">الروت - من</Label>
