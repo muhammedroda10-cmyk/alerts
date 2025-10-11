@@ -704,13 +704,12 @@ export default function Index() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+                 <div>
                   <Label htmlFor="supplier">السبلاير / التوقيع</Label>
                   <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
                 </div>
               </div>
+
             </CardContent>
             <CardContent className="space-y-2">
               <Label>المعاينة (قابلة للتعديل)</Label>
