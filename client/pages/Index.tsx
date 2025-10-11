@@ -669,21 +669,15 @@ export default function Index() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                
-                <div>
-                  <Label htmlFor="type">نوع التبليغ</Label>
-                  <Select value={type} onValueChange={setType}>
-                    <SelectTrigger id="type"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="delay">تأخير</SelectItem>
-                      <SelectItem value="advance">تعجيل</SelectItem>
-                      <SelectItem value="cancel">إلغاء</SelectItem>
-                      <SelectItem value="number_change">تغيير رقم الرحلة</SelectItem>
-                      <SelectItem value="number_time_delay">تغيير رقم ووقت (تأخير)</SelectItem>
-                      <SelectItem value="number_time_advance">تغيير رقم ووقت (تعجيل)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                 <div>
+                  <Label htmlFor="newFlightNumber">رقم الرحلة الجديد</Label>
+                  <Input id="newFlightNumber" value={newFlightNumber} onChange={(e) => setNewFlightNumber(e.target.value)} placeholder="أدخل الرقم الجديد إن وُجد" />
                 </div>
+                <div>
+                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
+                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
+                </div>
+                
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -696,13 +690,19 @@ export default function Index() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="newFlightNumber">رقم الرحلة الجديد</Label>
-                  <Input id="newFlightNumber" value={newFlightNumber} onChange={(e) => setNewFlightNumber(e.target.value)} placeholder="أدخل الرقم الجديد إن وُجد" />
-                </div>
-                <div>
-                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
-                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
+               <div>
+                  <Label htmlFor="type">نوع التبليغ</Label>
+                  <Select value={type} onValueChange={setType}>
+                    <SelectTrigger id="type"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="delay">تأخير</SelectItem>
+                      <SelectItem value="advance">تعجيل</SelectItem>
+                      <SelectItem value="cancel">إلغاء</SelectItem>
+                      <SelectItem value="number_change">تغيير رقم الرحلة</SelectItem>
+                      <SelectItem value="number_time_delay">تغيير رقم ووقت (تأخير)</SelectItem>
+                      <SelectItem value="number_time_advance">تغيير رقم ووقت (تعجيل)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
