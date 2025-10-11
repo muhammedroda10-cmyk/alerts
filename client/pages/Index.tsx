@@ -652,9 +652,10 @@ export default function Index() {
                   <Input id="destination" value={destination} onChange={(e) => setDestination(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="airline">شركة الطيران</Label>
-                  <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
+                  <Label htmlFor="date">تاريخ الرحلة</Label>
+                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                 </div>
+               
               </div>
               <div className="grid grid-cols-2 gap-4">
                 
@@ -662,9 +663,9 @@ export default function Index() {
                   <Label htmlFor="flightNumber">رقم الرحلة</Label>
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
-                <div>
-                  <Label htmlFor="date">تاريخ الرحلة</Label>
-                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                 <div>
+                  <Label htmlFor="airline">شركة الطيران</Label>
+                  <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
