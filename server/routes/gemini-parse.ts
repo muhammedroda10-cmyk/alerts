@@ -7,7 +7,7 @@ function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number,
   // Replace this placeholder with the actual import from jalaali-js:
   // const { gy, gm, gd } = toGregorian(jy, jm, jd);
   // return [gy, gm, gd];
-  
+
   // NOTE: Keeping the logic of the original code here for a runnable example
   // BUT the intent is to rely on JALALIJS for the final product.
   const r = jalCal(jy);
@@ -67,6 +67,11 @@ const RequestSchema = z.object({
   model: z.string().optional(),
 });
 
+/**
+ * Converts Persian/Arabic digits to Western (English) digits.
+ * @param input The string potentially containing non-Western digits.
+ * @returns The string with normalized digits.
+ */
 function normalizeDigits(input: string): string {
   const map: Record<string, string> = {
     "٠": "0", "۰": "0",
@@ -83,6 +88,11 @@ function normalizeDigits(input: string): string {
   return input.replace(/[٠-٩۰-۹]/g, (d) => map[d] || d);
 }
 
+/**
+ * Extracts JSON content from a string, handling code fences and digit normalization.
+ * @param text The raw response text from the Gemini API.
+ * @returns The parsed JSON object, or an empty object on failure.
+ */
 function extractJson(text: string): any {
   const cleaned = text.trim();
   const fence = cleaned.match(/```\w*\n([\s\S]*?)```/);
@@ -97,8 +107,12 @@ function extractJson(text: string): any {
   }
 }
 
-const CURRENT_YEAR = new Date().getFullYear();
-
+/**
+ * Normalizes a date string (YYYY/MM/DD) into ISO (YYYY-MM-DD) format,
+ * performing Jalali to Gregorian conversion if the year is in the Jalali range (1300-1499).
+ * @param input The date string (e.g., '1404/11/11' or '2025/01/30').
+ * @returns The date in 'yyyy-MM-dd' format or undefined if parsing fails.
+ */
 function normalizeDateToISO(input?: string): string | undefined {
   if (!input) return undefined;
 
@@ -111,22 +125,27 @@ function normalizeDateToISO(input?: string): string | undefined {
 
   const y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
 
-  // **التعديل هنا: الاعتماد على السنة لتحديد ما إذا كان شمسيًا (1300-1499) أو ميلاديًا.**
+  // 1. Check for Jalali calendar range (1300 - 1499)
   if (y >= 1300 && y <= 1499) {
-    // 1. التاريخ شمسي: استخدم دالة التحويل من JALALIJS (jalaliToGregorian)
+    // Jalali date: use the external function placeholder for conversion
     const [gy, gm, gd] = jalaliToGregorian(y, mo, d);
     return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
   }
 
-  // 2. التاريخ ميلادي: اعتمد على جواب GEMINI API مباشرة (كما كان مطلوبًا)
+  // 2. Gregorian date range check (1900 - 3000)
   if (y > 1900 && y < 3000) {
     return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
   }
 
-  // Fallback for any other case
+  // Fallback
   return undefined;
 }
 
+/**
+ * Normalizes a time string into 24-hour HH:mm format.
+ * @param input The time string.
+ * @returns The time in 'HH:mm' format or undefined if parsing fails.
+ */
 function normalizeTime24(input?: string): string | undefined {
   if (!input) return undefined;
   const s = normalizeDigits(String(input)).replace(/\s/g, "");
@@ -137,6 +156,7 @@ function normalizeTime24(input?: string): string | undefined {
   return `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
 }
 
+
 export const handleGeminiParse: RequestHandler = async (req, res) => {
   try {
     const parsed = RequestSchema.parse(req.body || {});
@@ -144,18 +164,18 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     if (!key) return res.status(400).json({ error: true, message: "Gemini API key is required" });
 
     const instruction = [
-     "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
-      "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
-      "Rules:",
-      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-      // ⬅️ تم تعديل هذه القاعدة
-      "- Use the date as it appears in the text, ensuring it is formatted as 'yyyy/MM/dd' regardless of the calendar type (Jalali or Gregorian). Do NOT perform any calendar conversion yourself; return the raw date found in the text.",
-      "- Use 24-hour HH:mm for times.",
-      "- Use IATA Airlines names only.",
-      "- Normalize digits to Western numerals.",
-      "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
-      "- If something is missing in the text, set it to an empty string.",
-      "Respond with only JSON, no explanations.",
+      "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
+      "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
+      "Rules:",
+      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
+      // ⬅️ القاعدة المعدلة: طلب عدم تحويل التاريخ من Gemini
+      "- Use the date as it appears in the text, ensuring it is formatted as 'yyyy/MM/dd' regardless of the calendar type (Jalali or Gregorian). Do NOT perform any calendar conversion yourself; return the raw date found in the text.",
+      "- Use 24-hour HH:mm for times.",
+      "- Use IATA Airlines names only.",
+      "- Normalize digits to Western numerals.",
+      "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
+      "- If something is missing in the text, set it to an empty string.",
+      "Respond with only JSON, no explanations.",
     ].join("\n");
 
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
@@ -207,7 +227,10 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     const airline = String(obj.airline || "").trim();
     const flightNumber = String(obj.flightNumber || obj.flight_no || obj.flight || "").toString().trim();
+
+    // ⬅️ هنا يتم استدعاء دالة التحويل الداخلية
     const dateISO = normalizeDateToISO(String(obj.date || obj.flightDate || ""));
+
     const originRaw = String(obj.origin || obj.from || "").toString().trim();
     const destinationRaw = String(obj.destination || obj.to || "").toString().trim();
 
@@ -231,7 +254,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const newAirline = String(obj.newAirline || obj.new_airline || "").trim();
 
     const inferredType = (() => {
-      const allowed = ["delay", "advance", "cancel", "number_change", "number_time_delay", "number_time_advance"]; 
+      const allowed = ["delay", "advance", "cancel", "number_change", "number_time_delay", "number_time_advance"];
       if (allowed.includes(rawType)) return rawType;
       if (newFlightNumber && newTime) return "number_time_delay"; // default to delay if time exists
       if (newFlightNumber) return "number_change";
@@ -242,7 +265,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const result = {
       airline,
       flightNumber,
-      date: dateISO || "",
+      date: dateISO || "", // ⬅️ إرجاع التاريخ بصيغة ISO الميلادية
       origin,
       destination,
       type: inferredType,
