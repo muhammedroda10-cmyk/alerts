@@ -148,7 +148,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
       "Rules:",
       "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-      "- Use ISO date format yyyy-MM-dd. **Crucially, if the date is in Persian month names (e.g., 30 مهر), you MUST convert the month name to its number (01-12) and include the year (1404) before outputting the full yyyy/MM/dd for the Shamsi date.** The subsequent code will handle the Gregorian conversion.",
+      "- Use ISO date format yyyy-MM-dd. If the date is in (فروردين – ...), convert from shamsi to Gregorian. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
       "- Use 24-hour HH:mm for times.",
       "- Use IATA Airlines names only.",
       "- Normalize digits to Western numerals.",
