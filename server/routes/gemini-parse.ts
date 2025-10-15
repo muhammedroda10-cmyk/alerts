@@ -136,8 +136,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
       "Rules:",
       "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-      // ⬅️ القاعدة المعدلة: طلب عدم تحويل التاريخ من Gemini
-      "- Use the date as it appears in the text, ensuring it is formatted as 'yyyy/MM/dd' regardless of the calendar type (Jalali or Gregorian). Do NOT perform any calendar conversion yourself; return the raw date found in the text.",
+      "- Use ISO Formatted date ensuring it is formatted as 'yyyy/MM/dd' regardless of the calendar type (Jalali or Gregorian). Do NOT perform any calendar conversion yourself.",
       "- Use 24-hour HH:mm for times.",
       "- Use IATA Airlines names only.",
       "- Normalize digits to Western numerals.",
