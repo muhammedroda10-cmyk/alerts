@@ -236,7 +236,7 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "تحية طيبة ...",
-        `تم تعجيل رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `تم تقديم رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         `الوقت القديم : *${oldTime}*`,
@@ -281,7 +281,7 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "تحية طيبة ...",
-        `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تعجيل)`,
+        `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تقديم)`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
@@ -696,11 +696,11 @@ export default function Index() {
                     <SelectTrigger id="type"><SelectValue placeholder="اختر النوع" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="delay">تأخير</SelectItem>
-                      <SelectItem value="advance">تعجيل</SelectItem>
+                      <SelectItem value="advance">تقديم</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
                       <SelectItem value="number_change">تغيير رقم الرحلة</SelectItem>
                       <SelectItem value="number_time_delay">تغيير رقم ووقت (تأخير)</SelectItem>
-                      <SelectItem value="number_time_advance">تغيير رقم ووقت (تعجيل)</SelectItem>
+                      <SelectItem value="number_time_advance">تغيير رقم ووقت (تقديم)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
