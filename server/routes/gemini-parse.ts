@@ -144,18 +144,18 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     if (!key) return res.status(400).json({ error: true, message: "Gemini API key is required" });
 
     const instruction = [
-      "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
-      "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
-      "Rules:",
-      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-       "- Use ISO date format yyyy-MM-dd",
-      "- RETURN JALALI DATE IF JALALI",
-      "- Use 24-hour HH:mm for times.",
-      "- Use IATA Airlines names only.",
-      "- Normalize digits to Western numerals.",
-      "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
-      "- If something is missing in the text, set it to an empty string.",
-      "Respond with only JSON, no explanations.",
+     "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
+      "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
+      "Rules:",
+      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
+      // ⬅️ تم تعديل هذه القاعدة
+      "- Use the date as it appears in the text, ensuring it is formatted as 'yyyy/MM/dd' regardless of the calendar type (Jalali or Gregorian). Do NOT perform any calendar conversion yourself; return the raw date found in the text.",
+      "- Use 24-hour HH:mm for times.",
+      "- Use IATA Airlines names only.",
+      "- Normalize digits to Western numerals.",
+      "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
+      "- If something is missing in the text, set it to an empty string.",
+      "Respond with only JSON, no explanations.",
     ].join("\n");
 
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
