@@ -1,27 +1,91 @@
-// @ts-ignore - Assuming external library for Jalali conversion is available
-import { toGregorian } from 'jalaali-js'; // Actual external import
+// Accurate, dependency-free Jalali (Persian) ↔ Gregorian conversion based on jalaali-js
+// Source algorithm: https://github.com/jalaali/jalaali-js (MIT License)
 
-/**
- * يحول التاريخ الجلالي إلى ميلادي باستخدام دالة toGregorian من مكتبة jalaali-js.
- * في بيئة الإنتاج، يجب أن تكون هذه الدالة هي toGregorian المستوردة مباشرة.
- * * @param jy السنة الجلالية
- * @param jm الشهر الجلالي
- * @param jd اليوم الجلالي
- * @returns مصفوفة تحتوي على [السنة الميلادية, الشهر الميلادي, اليوم الميلادي]
- */
-function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
-  // ⬅️ هذا هو الاستخدام الفعلي للدالة من البكج الخارجي
-  // NOTE: The implementation is commented out here because the 'jalaali-js' package
-  // is not available in this specific runtime environment.
-  // const { gy, gm, gd } = toGregorian(jy, jm, jd);
-  // return [gy, gm, gd];
+function div(a: number, b: number): number { return Math.trunc(a / b); }
+function mod(a: number, b: number): number { return a - Math.trunc(a / b) * b; }
 
-  // Placeholder to satisfy TypeScript and allow testing of the surrounding logic
-  // In a real app, this fallback logic should be removed.
-  return [1900, 1, 1];
+const JALALI_BREAKS = [-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178];
+
+function g2d(gy: number, gm: number, gd: number): number {
+  let d = div((gy + div(gm - 8, 6) + 100100) * 1461, 4)
+        + div(153 * mod(gm + 9, 12) + 2, 5)
+        + gd - 34840408;
+  d = d - div(div(gy + 100100 + div(gm - 8, 6), 100) * 3, 4) + 752;
+  return d;
 }
 
-// ❌ تم حذف جميع الدوال المساعدة الوهمية (g2d, d2g, jalCal, j2d) لتمثيل الاعتماد على البكج.
+function d2g(jdn: number): { gy: number; gm: number; gd: number } {
+  let j = 4 * jdn + 139361631;
+  j = j + div(div(4 * jdn + 183187720, 146097) * 3, 4) * 4 - 3908;
+  const i = div(mod(j, 1461), 4) * 5 + 308;
+  const gd = div(mod(i, 153), 5) + 1;
+  const gm = mod(div(i, 153), 12) + 1;
+  const gy = div(j, 1461) - 100100 + div(8 - gm, 6);
+  return { gy, gm, gd };
+}
+
+function jalCal(jy: number, withoutLeap = false): { gy: number; march: number; leap?: number } {
+  const bl = JALALI_BREAKS.length;
+  const gy = jy + 621;
+  let leapJ = -14;
+  let jp = JALALI_BREAKS[0];
+  let jm = 0;
+  let jump = 0;
+  if (jy < jp || jy > JALALI_BREAKS[bl - 1]) throw new Error("Invalid Jalaali year " + jy);
+  for (let i = 1; i < bl; i += 1) {
+    jm = JALALI_BREAKS[i];
+    jump = jm - jp;
+    if (jy < jm) break;
+    leapJ = leapJ + div(jump, 33) * 8 + div(mod(jump, 33), 4);
+    jp = jm;
+  }
+  let n = jy - jp;
+  leapJ = leapJ + div(n, 33) * 8 + div(mod(n, 33) + 3, 4);
+  if (mod(jump, 33) === 4 && jump - n === 4) leapJ += 1;
+  const leapG = div(gy, 4) - div((div(gy, 100) + 1) * 3, 4) - 150;
+  const march = 20 + leapJ - leapG;
+  if (withoutLeap) return { gy, march };
+  if (jump - n < 6) n = n - jump + div(jump + 4, 33) * 33;
+  let leap = mod(mod(n + 1, 33) - 1, 4);
+  if (leap === -1) leap = 4;
+  return { gy, march, leap };
+}
+
+function j2d(jy: number, jm: number, jd: number): number {
+  const r = jalCal(jy, true);
+  return g2d(r.gy, 3, r.march) + (jm - 1) * 31 - div(jm, 7) * (jm - 7) + jd - 1;
+}
+
+function toGregorian(jy: number, jm: number, jd: number): { gy: number; gm: number; gd: number } {
+  return d2g(j2d(jy, jm, jd));
+}
+
+function isLeapJalaaliYear(jy: number): boolean {
+  // years since last leap year equals 0 for leap
+  // Implemented via jalCal leap info
+  try {
+    const info = jalCal(jy);
+    return (info.leap ?? 1) === 0;
+  } catch { return false; }
+}
+
+function jalaaliMonthLength(jy: number, jm: number): number {
+  if (jm <= 6) return 31;
+  if (jm <= 11) return 30;
+  return isLeapJalaaliYear(jy) ? 30 : 29;
+}
+
+function isValidJalaaliDate(jy: number, jm: number, jd: number): boolean {
+  if (!(jy >= -61 && jy <= 3177)) return false;
+  if (!(jm >= 1 && jm <= 12)) return false;
+  if (!(jd >= 1 && jd <= jalaaliMonthLength(jy, jm))) return false;
+  return true;
+}
+
+function jalaliToGregorian(jy: number, jm: number, jd: number): [number, number, number] {
+  const { gy, gm, gd } = toGregorian(jy, jm, jd);
+  return [gy, gm, gd];
+}
 
 
 // Original imports and request schema remain...
@@ -95,7 +159,7 @@ function normalizeDateToISO(input?: string): string | undefined {
 
   // 1. Check for Jalali calendar range (1300 - 1499)
   if (y >= 1300 && y <= 1499) {
-    // Jalali date: use the external function placeholder for conversion
+    if (!isValidJalaaliDate(y, mo, d)) return undefined;
     const [gy, gm, gd] = jalaliToGregorian(y, mo, d);
     return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
   }
