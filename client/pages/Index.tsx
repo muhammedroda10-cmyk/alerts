@@ -267,7 +267,7 @@ export default function Index() {
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ران الجديدة: ${newAirline}` : ""),
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
@@ -297,7 +297,7 @@ export default function Index() {
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
-        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `نأسف لإبلاغك�� بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
@@ -420,7 +420,10 @@ export default function Index() {
 
       if ((d.airline || "").trim()) setAirline(d.airline);
       if ((d.flightNumber || "").trim()) setFlightNumber(String(d.flightNumber));
-      if ((d.date || "").trim()) setDate(String(d.date));
+      if ((d.date || "").trim()) {
+        const uiDate = String(d.date).slice(0, 10).replace(/\//g, "-");
+        setDate(uiDate);
+      }
       if ((d.origin || "").trim()) setOrigin(String(d.origin));
       if ((d.destination || "").trim()) setDestination(String(d.destination));
       if ((d.oldTime || "").trim()) setOldTime(String(d.oldTime));
@@ -580,7 +583,7 @@ export default function Index() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخراج"}</Button>
+            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخ��اج"}</Button>
           </CardFooter>
           </Card>
         
