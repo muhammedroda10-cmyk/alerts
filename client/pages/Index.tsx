@@ -267,7 +267,7 @@ export default function Index() {
         `تم تغيير رقم ووقت الرحلة   ${route}  بتاريخ *${dateFmt}* (تأخير)`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
@@ -297,7 +297,7 @@ export default function Index() {
     if (type === "cancel") {
       return [
         "تحية طيبة ...",
-        `نأسف لإبلاغك�� بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `نأسف لإبلاغكم بأنه تم إلغاء رحلة   ${route}  بتاريخ *${dateFmt}*`,
         `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
@@ -583,7 +583,7 @@ export default function Index() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخ��اج"}</Button>
+            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخراج"}</Button>
           </CardFooter>
           </Card>
         
