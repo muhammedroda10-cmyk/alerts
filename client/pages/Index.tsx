@@ -244,7 +244,7 @@ export default function Index() {
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
-        `الوقت الجديد : *${newTime}*${nextDayNote}`,
+        `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "",
       ].join("\n");
     }
