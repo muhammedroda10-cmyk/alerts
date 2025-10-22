@@ -548,7 +548,7 @@ export default function Index() {
         if (selectedSuppliers[sup] && (supplierNotes[sup] || "").trim()) {
           lines.push(supplierNotes[sup].trim());
         }
-        for (const p of list) lines.push(`PNR : ${p}`);
+        for (const p of list) lines.push(`رقم الحجز (PNR) : ${p}`);
         lines.push("", supplier);
         items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
