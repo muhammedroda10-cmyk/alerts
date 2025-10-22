@@ -310,7 +310,7 @@ export default function Index() {
   }, [airline, newAirline, date, destination, flightNumber, newFlightNumber, isNextDay, isPrevDay, newTime, oldTime, origin, type]);
 
   const previewSingle = useMemo(() => {
-    return [basePreview, `PNR : `, "", supplier].join("\n");
+    return [basePreview, `رقم الحجز (PNR) : `, "", supplier].join("\n");
   }, [basePreview, supplier]);
 
   useEffect(() => {
