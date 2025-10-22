@@ -168,7 +168,7 @@ export default function Index() {
   const [destination, setDestination] = useState("BGW");
   const [oldTime, setOldTime] = useState("19:30");
   const [newTime, setNewTime] = useState("01:00");
-  const [supplier, setSupplier] = useState("FLY4ALL");
+  const [supplier, setSupplier] = useState("فريق FLY4ALL");
   const [type, setType] = useState("delay"); // delay | advance | cancel
 
   const [rawTrips, setRawTrips] = useState("");
