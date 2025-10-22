@@ -212,7 +212,7 @@ export default function Index() {
   }, [oldTime, newTime]);
 
   const basePreview = useMemo(() => {
-    const route = `(*${origin} -> ${destination}*)`;
+    const route = `${origin} -> ${destination}`;
     const dateFmt = (() => {
       try { return format(new Date(date), "d/M/yyyy"); } catch { return date; }
     })();
