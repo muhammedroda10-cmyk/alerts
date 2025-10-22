@@ -236,7 +236,7 @@ export default function Index() {
     if (type === "advance") {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
-        "🟩 تبليغ تقديم رحلة",
+        "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير",
         `الرحلة : ${route}`,
