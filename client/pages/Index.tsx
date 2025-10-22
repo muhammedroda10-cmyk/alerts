@@ -226,7 +226,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `موعد الرحلة : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم الرحلة ( *${flightNumber}* ) على طيران ${airline}`,
+        `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
