@@ -554,7 +554,6 @@ export default function Index() {
         if (selectedSuppliers[sup] && note) {
           lines.push(note);
         }
-        lines.push("");
         lines.push("", supplier);
         items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
