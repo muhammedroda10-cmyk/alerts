@@ -218,7 +218,7 @@ export default function Index() {
     })();
 
     if (type === "delay") {
-      const nextDayNote = isNextDay ? ` (اليوم ا��تالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
+      const nextDayNote = isNextDay ? ` (اليوم التالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
@@ -244,7 +244,7 @@ export default function Index() {
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
-        `الو��ت الجديد : *${newTime}*${prevDayNote}`,
+        `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "",
       ].join("\n");
     }
@@ -252,7 +252,7 @@ export default function Index() {
     if (type === "number_change") {
       return [
         "تحية طيبة ...",
-        `تم تغي��ر رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
@@ -274,7 +274,7 @@ export default function Index() {
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
-        "يرجى إبلاغ ال��سافرين لطفًا ",
+        "يرجى إبلاغ المسافرين لطفًا ",
         "",
       ].join("\n");
     }
@@ -564,7 +564,7 @@ export default function Index() {
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع ��طابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         
@@ -613,7 +613,7 @@ export default function Index() {
                   <Input id="depFrom" type="date" value={apiDepartureFrom} onChange={(e) => setApiDepartureFrom(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="depTo">إلى تار��خ</Label>
+                  <Label htmlFor="depTo">إلى تاريخ</Label>
                   <Input id="depTo" type="date" value={apiDepartureTo} onChange={(e) => setApiDepartureTo(e.target.value)} />
                 </div>
               </div>
