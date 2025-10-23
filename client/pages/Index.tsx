@@ -550,6 +550,7 @@ export default function Index() {
         const note = (supplierNotes[sup] || DEFAULT_SUPPLIER_NOTE).trim();
         
         for (const p of list) lines.push(`رقم الحجز (PNR) : ${p}`);
+         lines.push("");
         if (selectedSuppliers[sup] && note) {
           lines.push(note);
         }
