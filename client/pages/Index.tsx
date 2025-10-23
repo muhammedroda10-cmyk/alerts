@@ -218,7 +218,7 @@ export default function Index() {
     })();
 
     if (type === "delay") {
-      const nextDayNote = isNextDay ? ` (اليوم التالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
+      const nextDayNote = isNextDay ? ` (اليوم ا��تالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
@@ -527,8 +527,11 @@ export default function Index() {
     return map;
   }, [trips, flightNumber, origin, destination, airline, date]);
 
+  const DEFAULT_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({});
+  const [defaultNoteEnabled, setDefaultNoteEnabled] = useState(false);
   const [copiedGroups, setCopiedGroups] = useState<Record<string, boolean>>({});
   const [deliveredGroups, setDeliveredGroups] = useState<Record<string, boolean>>({});
 
@@ -550,11 +553,14 @@ export default function Index() {
         }
         for (const p of list) lines.push(`رقم الحجز (PNR) : ${p}`);
         lines.push("", supplier);
+        if (defaultNoteEnabled) {
+          lines.push("", DEFAULT_NOTE);
+        }
         items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
     }
     return items;
-  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes]);
+  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes, defaultNoteEnabled])
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
@@ -748,6 +754,15 @@ export default function Index() {
                     <Input placeholder="ملاحظة لهذا المورد" value={supplierNotes[sup] || ""} onChange={(e) => setSupplierNotes((m) => ({ ...m, [sup]: e.target.value }))} />
                   </div>
                 ))}
+              </div>
+              <div className="mt-4 p-3 bg-slate-50 rounded border border-slate-200">
+                <div className="flex items-start gap-2">
+                  <input id="defaultNote" type="checkbox" checked={defaultNoteEnabled} onChange={(e) => setDefaultNoteEnabled(e.target.checked)} className="mt-1" />
+                  <div className="flex-1">
+                    <Label htmlFor="defaultNote" className="font-semibold">إضافة ملاحظة افتراضية</Label>
+                    <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{DEFAULT_NOTE}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
