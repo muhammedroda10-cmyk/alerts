@@ -244,7 +244,7 @@ export default function Index() {
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
-        `الوقت الجديد : *${newTime}*${prevDayNote}`,
+        `الو��ت الجديد : *${newTime}*${prevDayNote}`,
         "",
       ].join("\n");
     }
@@ -252,7 +252,7 @@ export default function Index() {
     if (type === "number_change") {
       return [
         "تحية طيبة ...",
-        `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
+        `تم تغي��ر رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
@@ -274,7 +274,7 @@ export default function Index() {
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
-        "يرجى إبلاغ المسافرين لطفًا ",
+        "يرجى إبلاغ ال��سافرين لطفًا ",
         "",
       ].join("\n");
     }
@@ -527,11 +527,10 @@ export default function Index() {
     return map;
   }, [trips, flightNumber, origin, destination, airline, date]);
 
-  const DEFAULT_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
-  const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({});
-  const [defaultNoteEnabled, setDefaultNoteEnabled] = useState(false);
+  const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({})
   const [copiedGroups, setCopiedGroups] = useState<Record<string, boolean>>({});
   const [deliveredGroups, setDeliveredGroups] = useState<Record<string, boolean>>({});
 
@@ -548,26 +547,24 @@ export default function Index() {
       for (const sup of supplierOrder) {
         const list = bySupplier.get(sup)!;
         const lines: string[] = [basePreview];
-        if (selectedSuppliers[sup] && (supplierNotes[sup] || "").trim()) {
-          lines.push(supplierNotes[sup].trim());
+        const note = (supplierNotes[sup] || DEFAULT_SUPPLIER_NOTE).trim();
+        if (selectedSuppliers[sup] && note) {
+          lines.push(note);
         }
         for (const p of list) lines.push(`رقم الحجز (PNR) : ${p}`);
         lines.push("", supplier);
-        if (defaultNoteEnabled) {
-          lines.push("", DEFAULT_NOTE);
-        }
         items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
     }
     return items;
-  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes, defaultNoteEnabled])
+  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes])
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
-          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
+          <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع ��طابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
         
@@ -616,7 +613,7 @@ export default function Index() {
                   <Input id="depFrom" type="date" value={apiDepartureFrom} onChange={(e) => setApiDepartureFrom(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="depTo">إلى تاريخ</Label>
+                  <Label htmlFor="depTo">إلى تار��خ</Label>
                   <Input id="depTo" type="date" value={apiDepartureTo} onChange={(e) => setApiDepartureTo(e.target.value)} />
                 </div>
               </div>
@@ -745,24 +742,22 @@ export default function Index() {
           <CardContent className="space-y-6">
             {/* Supplier notes controls */}
             <div>
-              <h3 className="font-bold mb-2">ملاحظات الموردين</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <h3 className="font-bold mb-4">ملاحظات الموردين</h3>
+              <div className="space-y-4">
                 {Array.from(new Set(Array.from(matchedByTitle.values()).flat().map((x) => x.supplier || "غير معروف"))).map((sup) => (
-                  <div key={sup} className="flex items-center gap-2">
-                    <input id={`sup-${sup}`} type="checkbox" checked={!!selectedSuppliers[sup]} onChange={(e) => setSelectedSuppliers((m) => ({ ...m, [sup]: e.target.checked }))} />
-                    <Label htmlFor={`sup-${sup}`} className="min-w-24">{sup}</Label>
-                    <Input placeholder="ملاحظة لهذا المورد" value={supplierNotes[sup] || ""} onChange={(e) => setSupplierNotes((m) => ({ ...m, [sup]: e.target.value }))} />
+                  <div key={sup} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input id={`sup-${sup}`} type="checkbox" checked={!!selectedSuppliers[sup]} onChange={(e) => setSelectedSuppliers((m) => ({ ...m, [sup]: e.target.checked }))} />
+                      <Label htmlFor={`sup-${sup}`} className="font-semibold">{sup}</Label>
+                    </div>
+                    <Textarea
+                      placeholder="أدخل ملاحظتك هنا..."
+                      value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
+                      onChange={(e) => setSupplierNotes((m) => ({ ...m, [sup]: e.target.value }))}
+                      className="min-h-[120px] text-sm"
+                    />
                   </div>
                 ))}
-              </div>
-              <div className="mt-4 p-3 bg-slate-50 rounded border border-slate-200">
-                <div className="flex items-start gap-2">
-                  <input id="defaultNote" type="checkbox" checked={defaultNoteEnabled} onChange={(e) => setDefaultNoteEnabled(e.target.checked)} className="mt-1" />
-                  <div className="flex-1">
-                    <Label htmlFor="defaultNote" className="font-semibold">إضافة ملاحظة افتراضية</Label>
-                    <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">{DEFAULT_NOTE}</p>
-                  </div>
-                </div>
               </div>
             </div>
 
