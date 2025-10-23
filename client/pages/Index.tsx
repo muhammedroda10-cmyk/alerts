@@ -288,7 +288,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `موعد الرحلة : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `*رقم الرحلة القديم:${flightNumber}*`,
+        `*رقم الرحلة القديم: ${flightNumber}*`,
         newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
