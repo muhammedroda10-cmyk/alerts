@@ -548,10 +548,11 @@ export default function Index() {
         const list = bySupplier.get(sup)!;
         const lines: string[] = [basePreview];
         const note = (supplierNotes[sup] || DEFAULT_SUPPLIER_NOTE).trim();
+        
+        for (const p of list) lines.push(`رقم الحجز (PNR) : ${p}`);
         if (selectedSuppliers[sup] && note) {
           lines.push(note);
         }
-        for (const p of list) lines.push(`رقم الحجز (PNR) : ${p}`);
         lines.push("", supplier);
         items.push({ id: `${groupName}__${sup}`, groupName, supplier: sup, pnrs: list, body: lines.join("\n") });
       }
