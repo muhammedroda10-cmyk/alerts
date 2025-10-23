@@ -282,7 +282,7 @@ export default function Index() {
     if (type === "number_time_advance") {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
-        "🟩 تبليغ تقديم رحلة",
+        "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
