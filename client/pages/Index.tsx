@@ -270,7 +270,7 @@ export default function Index() {
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شرك�� الطيران الجديدة: ${newAirline}` : ""),
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -296,7 +296,8 @@ export default function Index() {
     }
 
     if (type === "number_time_advance") {
-      const prevDayNote = isPrevDay ? ` (الي��م السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      const prevDayDate = addDays(date, -1);
+      const prevDayNote = isPrevDay ? ` (اليوم السابق ${formatDateSafely(prevDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
