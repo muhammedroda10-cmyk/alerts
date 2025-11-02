@@ -248,13 +248,14 @@ export default function Index() {
     }
 
     if (type === "advance") {
-      const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      const prevDayDate = addDays(date, -1);
+      const prevDayNote = isPrevDay ? ` (اليوم السابق ${formatDateSafely(prevDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم رحلة",
-        "تحية طيبة",
+        "تحية ط��بة",
         "نود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
-        `بتا��يخ : *${dateFmt}*`,
+        `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
@@ -283,7 +284,7 @@ export default function Index() {
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير وتغيير رقم",
         `الرحلة : ${route}`,
-        `بتاري�� : *${dateFmt}*`,
+        `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
         newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
@@ -731,7 +732,7 @@ export default function Index() {
                   </Select>
                 </div>
                  <div>
-                  <Label htmlFor="supplier">السبلاير / التوقيع</Label>
+                  <Label htmlFor="supplier">ال��بلاير / التوقيع</Label>
                   <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
                 </div>
               </div>
@@ -752,7 +753,7 @@ export default function Index() {
           <CardHeader className="flex items-center justify-between">
             <CardTitle>التبليغات حسب الشركة</CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setCopiedGroups({}); setDeliveredGroups({}); setHiddenGroups({}); toast({ title: "تمت إعادة الضبط", description: "تصفير حالات التبليغ" }); }}>تصفير الحالات</Button>
+              <Button variant="outline" size="sm" onClick={() => { setCopiedGroups({}); setDeliveredGroups({}); setHiddenGroups({}); toast({ title: "تمت إعادة الضبط", description: "ت��فير حالات التبليغ" }); }}>تصفير الحالات</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
