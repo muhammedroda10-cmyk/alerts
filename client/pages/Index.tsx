@@ -252,7 +252,7 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${formatDateSafely(prevDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم رحلة",
-        "تحية ط��بة",
+        "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
@@ -278,7 +278,8 @@ export default function Index() {
     }
 
     if (type === "number_time_delay") {
-      const nextDayNote = isNextDay ? ` (اليوم التالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
+      const nextDayDate = addDays(date, 1);
+      const nextDayNote = isNextDay ? ` (اليوم التالي ${formatDateSafely(nextDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
@@ -295,7 +296,7 @@ export default function Index() {
     }
 
     if (type === "number_time_advance") {
-      const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay ? ` (الي��م السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
@@ -702,7 +703,7 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
-                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
+                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة ��لطيران الجديدة إن وُجدت" />
                 </div>
                 
               </div>
@@ -732,7 +733,7 @@ export default function Index() {
                   </Select>
                 </div>
                  <div>
-                  <Label htmlFor="supplier">ال��بلاير / التوقيع</Label>
+                  <Label htmlFor="supplier">السبلاير / التوقيع</Label>
                   <Input id="supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
                 </div>
               </div>
@@ -753,7 +754,7 @@ export default function Index() {
           <CardHeader className="flex items-center justify-between">
             <CardTitle>التبليغات حسب الشركة</CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setCopiedGroups({}); setDeliveredGroups({}); setHiddenGroups({}); toast({ title: "تمت إعادة الضبط", description: "ت��فير حالات التبليغ" }); }}>تصفير الحالات</Button>
+              <Button variant="outline" size="sm" onClick={() => { setCopiedGroups({}); setDeliveredGroups({}); setHiddenGroups({}); toast({ title: "تمت إعادة الضبط", description: "تصفير حالات التبليغ" }); }}>تصفير الحالات</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
