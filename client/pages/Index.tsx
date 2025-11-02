@@ -42,8 +42,23 @@ function toMinutes(t: string) {
 }
 
 
+function isValidDate(date: Date): boolean {
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
+function formatDateSafely(dateStr: string, pattern: string, fallback?: string): string {
+  if (!dateStr) return fallback || "";
+  try {
+    const date = new Date(dateStr);
+    if (!isValidDate(date)) return fallback || dateStr;
+    return format(date, pattern);
+  } catch {
+    return fallback || dateStr;
+  }
+}
+
 function formatDateYMD(dateStr: string) {
-  try { return format(new Date(dateStr), "yyyy/MM/dd"); } catch { return dateStr; }
+  return formatDateSafely(dateStr, "yyyy/MM/dd", dateStr);
 }
 
 function normalizeDateForCompare(s?: string) {
@@ -283,7 +298,7 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
-        "تحية طيبة",
+        "تحية ط��بة",
         "نود إعلامكم بأنه تم تقديم وتغيير رقم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
@@ -500,7 +515,7 @@ export default function Index() {
       setEditedBodies({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
-      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
+      toast({ title: "خطأ ف�� الجلب", description: e?.message || "تعذر الاتصال" });
     }
   };
 
