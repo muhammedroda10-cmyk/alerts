@@ -228,12 +228,11 @@ export default function Index() {
 
   const basePreview = useMemo(() => {
     const route = `${origin} -> ${destination}`;
-    const dateFmt = (() => {
-      try { return format(new Date(date), "d/M/yyyy"); } catch { return date; }
-    })();
+    const dateFmt = formatDateSafely(date, "d/M/yyyy", date);
 
     if (type === "delay") {
-      const nextDayNote = isNextDay ? ` (اليوم التالي ${format(addDays(date, 1), "yyyy/MM/dd")})` : "";
+      const nextDayDate = addDays(date, 1);
+      const nextDayNote = isNextDay ? ` (اليوم التالي ${formatDateSafely(nextDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
@@ -255,7 +254,7 @@ export default function Index() {
         "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
-        `بتاريخ : *${dateFmt}*`,
+        `بتا��يخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
@@ -284,7 +283,7 @@ export default function Index() {
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير وتغيير رقم",
         `الرحلة : ${route}`,
-        `بتاريخ : *${dateFmt}*`,
+        `بتاري�� : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
         newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
@@ -298,7 +297,7 @@ export default function Index() {
       const prevDayNote = isPrevDay ? ` (اليوم السابق ${format(addDays(date, -1), "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
-        "تحية ط��بة",
+        "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم وتغيير رقم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
@@ -515,7 +514,7 @@ export default function Index() {
       setEditedBodies({});
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
-      toast({ title: "خطأ ف�� الجلب", description: e?.message || "تعذر الاتصال" });
+      toast({ title: "خطأ في الجلب", description: e?.message || "تعذر الاتصال" });
     }
   };
 
