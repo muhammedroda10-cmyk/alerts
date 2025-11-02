@@ -270,7 +270,7 @@ export default function Index() {
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شرك�� الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -704,7 +704,7 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
-                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة ��لطيران الجديدة إن وُجدت" />
+                  <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
                 </div>
                 
               </div>
@@ -831,7 +831,7 @@ export default function Index() {
                     <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto">{h.message}</pre>
                   </CardContent>
                   <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{format(new Date(h.createdAt), "yyyy/MM/dd HH:mm")}</span>
+                    <span>{formatDateSafely(h.createdAt, "yyyy/MM/dd HH:mm", "Invalid date")}</span>
                     <div className="flex gap-2">
                       <Button size="sm" variant="destructive" onClick={() => setHistory((arr) => arr.filter((x) => x.id !== h.id))}>حذف</Button>
                       <Button size="sm" onClick={() => copy(h.message)}>نسخ</Button>
