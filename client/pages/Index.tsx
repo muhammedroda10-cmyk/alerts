@@ -239,7 +239,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم الرح��ة :${flightNumber}`,
+        `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
@@ -276,8 +276,7 @@ export default function Index() {
     }
 
     if (type === "number_time_delay") {
-      const nextDayDate = addDays(date, 1);
-      const nextDayNote = isNextDay ? ` (اليوم التالي ${formatDateSafely(nextDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
@@ -295,7 +294,7 @@ export default function Index() {
 
     if (type === "number_time_advance") {
       const prevDayDate = addDays(date, -1);
-      const prevDayNote = isPrevDay ? ` (اليوم السابق ${formatDateSafely(prevDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay ? ` (اليوم ال��ابق ${formatDateSafely(prevDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
@@ -589,7 +588,7 @@ export default function Index() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <Card>
           <CardHeader>
-            <CardTitle>استخراج تلقائي من ��ص التبليغ (Gemini)</CardTitle>
+            <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
@@ -669,7 +668,7 @@ export default function Index() {
                   <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                 </div>
                 <div className="pb-1 flex items-center justify-center">
-                  <Button type="button" variant="outline" size="icon" aria-label="عكس الرو��" title="عكس الروت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
+                  <Button type="button" variant="outline" size="icon" aria-label="��كس الروت" title="عكس الروت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
                     <ArrowLeftRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -848,7 +847,7 @@ export default function Index() {
             <div className="space-y-2">
               <Label htmlFor="newToken">التوكن</Label>
               <Input id="newToken" type="password" value={tokenCandidate} onChange={(e) => setTokenCandidate(e.target.value)} placeholder="أدخل التوكن" />
-              <p className="text-xs text-muted-foreground">سيتم حفظه في المتصفح للاستخدام ��لقادم.</p>
+              <p className="text-xs text-muted-foreground">سيتم حفظه في المتصفح لل��ستخدام القادم.</p>
             </div>
             <DialogFooter>
               <Button variant="secondary" onClick={() => setShowTokenDialog(false)}>إلغاء</Button>
