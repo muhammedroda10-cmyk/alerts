@@ -231,8 +231,7 @@ export default function Index() {
     const dateFmt = formatDateSafely(date, "d/M/yyyy", date);
 
     if (type === "delay") {
-      const nextDayDate = addDays(date, 1);
-      const nextDayNote = isNextDay ? ` (اليوم التالي ${formatDateSafely(nextDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
@@ -259,7 +258,7 @@ export default function Index() {
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
-        `الوقت الجديد : *${newTime}*${prevDayNote}`,
+        `ال��قت الجديد : *${newTime}*${prevDayNote}`,
         "",
       ].join("\n");
     }
