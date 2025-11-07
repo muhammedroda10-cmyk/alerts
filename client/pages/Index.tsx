@@ -268,7 +268,7 @@ export default function Index() {
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ران الجديدة: ${newAirline}` : ""),
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -293,8 +293,7 @@ export default function Index() {
     }
 
     if (type === "number_time_advance") {
-      const prevDayDate = addDays(date, -1);
-      const prevDayNote = isPrevDay ? ` (اليوم ال��ابق ${formatDateSafely(prevDayDate.toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay && isValidDate(date) ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
@@ -606,7 +605,7 @@ export default function Index() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخراج"}</Button>
+            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري ا��تحليل..." : "استخراج"}</Button>
           </CardFooter>
           </Card>
         
@@ -668,7 +667,7 @@ export default function Index() {
                   <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                 </div>
                 <div className="pb-1 flex items-center justify-center">
-                  <Button type="button" variant="outline" size="icon" aria-label="��كس الروت" title="عكس الروت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
+                  <Button type="button" variant="outline" size="icon" aria-label="عكس الروت" title="عكس الر��ت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
                     <ArrowLeftRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -742,7 +741,7 @@ export default function Index() {
               <Textarea value={singleEdited} onChange={(e) => { setSingleEdited(e.target.value); setSingleDirty(true); }} className="min-h-[180px]" />
             </CardContent>
             <CardFooter className="flex gap-2 justify-end">
-              <Button onClick={() => { save(singleEdited, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حفظ تبليغ عام</Button>
+              <Button onClick={() => { save(singleEdited, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حف�� تبليغ عام</Button>
               <Button variant="secondary" onClick={() => copy(singleEdited)}>نسخ تبليغ عام</Button>
             </CardFooter>
           </Card>
@@ -847,7 +846,7 @@ export default function Index() {
             <div className="space-y-2">
               <Label htmlFor="newToken">التوكن</Label>
               <Input id="newToken" type="password" value={tokenCandidate} onChange={(e) => setTokenCandidate(e.target.value)} placeholder="أدخل التوكن" />
-              <p className="text-xs text-muted-foreground">سيتم حفظه في المتصفح لل��ستخدام القادم.</p>
+              <p className="text-xs text-muted-foreground">سيتم حفظه في المتصفح للاستخدام القادم.</p>
             </div>
             <DialogFooter>
               <Button variant="secondary" onClick={() => setShowTokenDialog(false)}>إلغاء</Button>
