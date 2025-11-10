@@ -12,9 +12,8 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import moment from "jalali-moment";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
-import { Calendar } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
 
 interface NotificationItem {
   id: string;
@@ -360,7 +359,7 @@ export default function Index() {
         "نود إعلامكم بأنه تم الغاء",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
-        ` على متن طيران :${airline}`,
+        ` على م��ن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         "",
       ].join("\n");
