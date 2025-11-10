@@ -527,7 +527,7 @@ export default function Index() {
             paymentStatus: "default",
             seller: 0,
             departureFrom: apiDepartureFrom || date,
-            departureTo: apiDepartureTo || date,
+            departureTo: apiDepartureFrom || date,
             flightNumber: apiFlightNumber || flightNumber,
             pnr: apiPnr,
           },
@@ -675,16 +675,7 @@ export default function Index() {
                     onChange={(e) => setApiDepartureFrom(convertFromDisplayFormat(e.target.value))}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="depTo">إلى تاريخ</Label>
-                  <Input
-                    id="depTo"
-                    type="text"
-                    placeholder="dd/MM/yyyy"
-                    value={convertToDisplayFormat(apiDepartureTo)}
-                    onChange={(e) => setApiDepartureTo(convertFromDisplayFormat(e.target.value))}
-                  />
-                </div>
+                
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
