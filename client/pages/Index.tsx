@@ -666,7 +666,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="depFrom">من تاريخ</Label>
+                  <Label htmlFor="depFrom"> تاريخ الرحلة</Label>
                   <Input
                     id="depFrom"
                     type="text"
