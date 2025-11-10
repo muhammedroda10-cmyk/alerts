@@ -308,7 +308,7 @@ export default function Index() {
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ر��ن الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ران الجديدة: ${newAirline}` : ""),
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -732,34 +732,16 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="date">تاريخ الرحلة</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="date"
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? convertToDisplayFormat(date) : <span>dd/MM/yyyy</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={date ? new Date(date) : undefined}
-                        onSelect={(selectedDate) => {
-                          if (selectedDate) {
-                            const isoDate = selectedDate.toISOString().split('T')[0];
-                            setDate(isoDate);
-                          }
-                        }}
-                        disabled={(d) => d > new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    id="date"
+                    type="text"
+                    placeholder="dd/MM/yyyy"
+                    value={convertToDisplayFormat(date)}
+                    onChange={(e) => {
+                      const isoDate = convertFromDisplayFormat(e.target.value);
+                      setDate(isoDate);
+                    }}
+                  />
                 </div>
                
               </div>
@@ -780,7 +762,7 @@ export default function Index() {
                   <Input id="newFlightNumber" value={newFlightNumber} onChange={(e) => setNewFlightNumber(e.target.value)} placeholder="أدخل الرقم الجديد إن وُجد" />
                 </div>
                 <div>
-                  <Label htmlFor="newAirline">شركة ا��طيران الجديدة</Label>
+                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
                   <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
                 </div>
                 
