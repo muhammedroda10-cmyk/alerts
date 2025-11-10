@@ -328,7 +328,7 @@ export default function Index() {
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
-        newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران ا��جديدة: ${newAirline}` : ""),
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
@@ -359,8 +359,8 @@ export default function Index() {
         "نود إعلامكم بأنه تم الغاء",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
-        ` على م��ن طيران :${airline}`,
-        `رقم الرحلة :${flightNumber}`,
+        ` على متن طيران :${airline}`,
+        `رقم ا��رحلة :${flightNumber}`,
         "",
       ].join("\n");
     }
@@ -475,7 +475,7 @@ export default function Index() {
         body: JSON.stringify({ text: aiText, apiKey: geminiKey || undefined, model: geminiModel || undefined }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data?.message || "فشل التحليل");
+      if (!res.ok || data.error) throw new Error(data?.message || "فشل ال��حليل");
       const d = data.data || {};
 
       if ((d.airline || "").trim()) setAirline(d.airline);
@@ -735,16 +735,34 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="date">تاريخ الرحلة</Label>
-                  <Input
-                    id="date"
-                    type="text"
-                    placeholder="dd/MM/yyyy"
-                    value={convertToDisplayFormat(date)}
-                    onChange={(e) => {
-                      const isoDate = convertFromDisplayFormat(e.target.value);
-                      setDate(isoDate);
-                    }}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? convertToDisplayFormat(date) : <span>dd/MM/yyyy</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date ? new Date(date) : undefined}
+                        onSelect={(selectedDate) => {
+                          if (selectedDate) {
+                            const isoDate = selectedDate.toISOString().split('T')[0];
+                            setDate(isoDate);
+                          }
+                        }}
+                        disabled={(d) => d > new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                
               </div>
