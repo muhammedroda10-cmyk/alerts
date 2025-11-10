@@ -304,7 +304,7 @@ export default function Index() {
     if (type === "number_time_delay") {
       const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
-        "🟨 تبليغ تأخير وتغيير رقم رحلة",
+        "���� تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير وتغيير رقم",
         `الرحلة : ${route}`,
@@ -465,7 +465,8 @@ export default function Index() {
       if ((d.flightNumber || "").trim()) setFlightNumber(String(d.flightNumber));
       if ((d.date || "").trim()) {
         const uiDate = String(d.date).slice(0, 10).replace(/\//g, "-");
-        setDate(uiDate);
+        const convertedDate = convertJalaliToGregorian(uiDate);
+        setDate(convertedDate);
       }
       if ((d.origin || "").trim()) setOrigin(String(d.origin));
       if ((d.destination || "").trim()) setDestination(String(d.destination));
@@ -618,7 +619,7 @@ export default function Index() {
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="aiText">نص التبليغ</Label>
-              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق نص التبليغ هنا بأي لغة" />
+              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق ��ص التبليغ هنا بأي لغة" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="geminiKey">Gemini API Key</Label>
