@@ -279,7 +279,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم ��لرحلة :${flightNumber}`,
+        `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
@@ -308,7 +308,7 @@ export default function Index() {
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -338,10 +338,10 @@ export default function Index() {
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم وتغيير رقم",
-        `الرح��ة : ${route}`,
+        `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `*رقم الرحلة ا��قديم: ${flightNumber}*`,
+        `*رقم الرحلة القديم: ${flightNumber}*`,
         newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
@@ -582,7 +582,7 @@ export default function Index() {
     return map;
   }, [trips, flightNumber, origin, destination, airline, date]);
 
-  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود ال��نويه أننا غير مسؤولين عن حالة الحجز بعد هذ�� الوقت في حال عدم وصول تأكيد من قبلكم";
+  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({})
@@ -620,7 +620,7 @@ export default function Index() {
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto py-8 space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">نظام التب��يغات للرحلات</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
           <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
@@ -634,7 +634,7 @@ export default function Index() {
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="aiText">نص التبليغ</Label>
-              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق ن�� التبليغ هنا بأي لغة" />
+              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق نص التبليغ هنا بأي لغة" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="geminiKey">Gemini API Key</Label>
@@ -647,7 +647,7 @@ export default function Index() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري ا��تحليل..." : "استخراج"}</Button>
+            <Button onClick={parseWithGemini} disabled={aiLoading}>{aiLoading ? "جاري التحليل..." : "استخراج"}</Button>
           </CardFooter>
           </Card>
         
@@ -695,7 +695,7 @@ export default function Index() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-              <Button onClick={fetchFromApi}>ج��ب من API</Button>
+              <Button onClick={fetchFromApi}>جلب من API</Button>
             </CardFooter>
           </Card>
 
@@ -712,7 +712,7 @@ export default function Index() {
                   <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                 </div>
                 <div className="pb-1 flex items-center justify-center">
-                  <Button type="button" variant="outline" size="icon" aria-label="عك�� الروت" title="عكس الر��ت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
+                  <Button type="button" variant="outline" size="icon" aria-label="عكس الروت" title="عكس الروت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
                     <ArrowLeftRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -743,7 +743,7 @@ export default function Index() {
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
                  <div>
-                  <Label htmlFor="airline">شركة الطي��ان</Label>
+                  <Label htmlFor="airline">شركة الطيران</Label>
                   <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
               </div>
@@ -795,7 +795,7 @@ export default function Index() {
               <Textarea value={singleEdited} onChange={(e) => { setSingleEdited(e.target.value); setSingleDirty(true); }} className="min-h-[180px]" />
             </CardContent>
             <CardFooter className="flex gap-2 justify-end">
-              <Button onClick={() => { save(singleEdited, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حف�� تبليغ عام</Button>
+              <Button onClick={() => { save(singleEdited, `${origin}-${destination} ${flightNumber} ${formatDateYMD(date)}`); }}>حفظ تبليغ عام</Button>
               <Button variant="secondary" onClick={() => copy(singleEdited)}>نسخ تبليغ عام</Button>
             </CardFooter>
           </Card>
