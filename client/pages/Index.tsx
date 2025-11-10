@@ -62,6 +62,31 @@ function formatDateYMD(dateStr: string) {
   return formatDateSafely(dateStr, "yyyy/MM/dd", dateStr);
 }
 
+function convertJalaliToGregorian(dateStr: string): string {
+  if (!dateStr) return dateStr;
+
+  try {
+    const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return dateStr;
+
+    const year = parseInt(m[1], 10);
+    const month = parseInt(m[2], 10);
+    const day = parseInt(m[3], 10);
+
+    // Check if this is a Jalali date (Shamsi year range 1300-1499)
+    if (year >= 1300 && year <= 1499) {
+      // Convert Jalali to Gregorian using jalali-moment
+      const jDate = moment(`${year}/${month}/${day}`, 'jYYYY/jMM/jDD');
+      return jDate.format('YYYY-MM-DD');
+    }
+
+    // Already a Gregorian date
+    return dateStr;
+  } catch {
+    return dateStr;
+  }
+}
+
 function normalizeDateForCompare(s?: string) {
   if (!s) return "";
   const m = String(s).match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/);
@@ -240,7 +265,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم الرحلة :${flightNumber}`,
+        `رقم ��لرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
@@ -668,7 +693,7 @@ export default function Index() {
                   <Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} />
                 </div>
                 <div className="pb-1 flex items-center justify-center">
-                  <Button type="button" variant="outline" size="icon" aria-label="عكس الروت" title="عكس الر��ت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
+                  <Button type="button" variant="outline" size="icon" aria-label="عك�� الروت" title="عكس الر��ت" onClick={() => { const o = origin; const d = destination; setOrigin(d); setDestination(o); }}>
                     <ArrowLeftRight className="h-4 w-4" />
                   </Button>
                 </div>
