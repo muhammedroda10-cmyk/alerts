@@ -118,7 +118,7 @@ function normalizeDateToISO(input?: string): string | undefined {
     return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
   }
 
-  // 2. التاريخ ميلادي: اعتمد على جواب GEMINI API مباشرة (كما كان مطلوبًا)
+  // 2. التاريخ ميلادي: اعتمد على ��واب GEMINI API مباشرة (كما كان مطلوبًا)
   if (y > 1900 && y < 3000) {
     return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
   }
@@ -148,7 +148,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
       "Rules:",
       "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-      "- Use ISO date format yyyy-MM-dd. If the date is in (فروردين – ...), convert from shamsi to Gregorian. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
+      "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
       "- Use 24-hour HH:mm for times.",
       "- Use IATA Airlines names only.",
       "- Normalize digits to Western numerals.",
