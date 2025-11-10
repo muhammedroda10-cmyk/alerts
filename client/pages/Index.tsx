@@ -304,7 +304,7 @@ export default function Index() {
     if (type === "number_time_delay") {
       const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
       return [
-        "���� تبليغ تأخير وتغيير رقم رحلة",
+        "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير وتغيير رقم",
         `الرحلة : ${route}`,
@@ -327,7 +327,7 @@ export default function Index() {
         `الرح��ة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `*رقم الرحلة القديم: ${flightNumber}*`,
+        `*رقم الرحلة ا��قديم: ${flightNumber}*`,
         newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
@@ -479,8 +479,9 @@ export default function Index() {
       // Also fill API proxy fields (dates and flight number)
       if ((d.date || "").trim()) {
         const dd = String(d.date).slice(0, 10).replace(/\//g, "-");
-        setApiDepartureFrom(dd);
-        setApiDepartureTo(dd);
+        const convertedDate = convertJalaliToGregorian(dd);
+        setApiDepartureFrom(convertedDate);
+        setApiDepartureTo(convertedDate);
       }
       if ((d.flightNumber || "").trim()) {
         const num = String(d.flightNumber).match(/(\d{2,})/);
@@ -567,7 +568,7 @@ export default function Index() {
     return map;
   }, [trips, flightNumber, origin, destination, airline, date]);
 
-  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذ�� الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({})
@@ -619,7 +620,7 @@ export default function Index() {
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="aiText">نص التبليغ</Label>
-              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق ��ص التبليغ هنا بأي لغة" />
+              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق نص التبليغ هنا بأي لغة" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="geminiKey">Gemini API Key</Label>
@@ -716,7 +717,7 @@ export default function Index() {
                   <Input id="flightNumber" value={flightNumber} onChange={(e) => setFlightNumber(e.target.value)} />
                 </div>
                  <div>
-                  <Label htmlFor="airline">شركة الطيران</Label>
+                  <Label htmlFor="airline">شركة الطي��ان</Label>
                   <Input id="airline" value={airline} onChange={(e) => setAirline(e.target.value)} />
                 </div>
               </div>
