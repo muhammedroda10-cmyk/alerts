@@ -105,21 +105,16 @@ function normalizeDateToISO(input?: string): string | undefined {
   // Normalize and clean the input string
   const s = normalizeDigits(String(input)).replace(/\./g, "/").replace(/-/g, "/").trim();
 
-  // Check for standard YYYY/MM/DD format (Gregorian or Jalali)
+  // Check for standard YYYY/MM/DD format (Gemini returns dates in this format)
   const m = s.match(/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/);
   if (!m) return undefined;
 
   const y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
 
-  // **التعديل هنا: الاعتماد على السنة لتحديد ما إذا كان شمسيًا (1300-1499) أو ميلاديًا.**
-  if (y >= 1300 && y <= 1499) {
-    // 1. التاريخ شمسي: استخدم دالة التحويل من JALALIJS (jalaliToGregorian)
-    const [gy, gm, gd] = jalaliToGregorian(y, mo, d);
-    return `${gy.toString().padStart(4, "0")}-${gm.toString().padStart(2, "0")}-${gd.toString().padStart(2, "0")}`;
-  }
-
-  // 2. التاريخ ميلادي: اعتمد على ��واب GEMINI API مباشرة (كما كان مطلوبًا)
-  if (y > 1900 && y < 3000) {
+  // Return the date as-is in yyyy-MM-dd format
+  // Do NOT convert Jalali dates here - the frontend will handle conversion using jalali-moment
+  // Jalali dates will have years in range 1300-1499, Gregorian will be > 1900
+  if ((y >= 1300 && y <= 1499) || (y > 1900 && y < 3000)) {
     return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
   }
 
