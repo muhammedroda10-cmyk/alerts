@@ -93,6 +93,20 @@ function normalizeDateForCompare(s?: string) {
   return m ? `${m[1]}/${m[2]}/${m[3]}` : String(s);
 }
 
+function convertToDisplayFormat(dateStr: string): string {
+  if (!dateStr) return "";
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return dateStr;
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
+function convertFromDisplayFormat(displayStr: string): string {
+  if (!displayStr) return "";
+  const m = displayStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return displayStr;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
 function equalCI(a?: string, b?: string) {
   return String(a ?? "").trim().toUpperCase() === String(b ?? "").trim().toUpperCase();
 }
