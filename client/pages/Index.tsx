@@ -582,7 +582,7 @@ export default function Index() {
     return map;
   }, [trips, flightNumber, origin, destination, airline, date]);
 
-  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذ�� الوقت في حال عدم وصول تأكيد من قبلكم";
+  const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود ال��نويه أننا غير مسؤولين عن حالة الحجز بعد هذ�� الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({})
@@ -667,11 +667,23 @@ export default function Index() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="depFrom">من تاريخ</Label>
-                  <Input id="depFrom" type="date" value={apiDepartureFrom} onChange={(e) => setApiDepartureFrom(e.target.value)} />
+                  <Input
+                    id="depFrom"
+                    type="text"
+                    placeholder="dd/MM/yyyy"
+                    value={convertToDisplayFormat(apiDepartureFrom)}
+                    onChange={(e) => setApiDepartureFrom(convertFromDisplayFormat(e.target.value))}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="depTo">إلى تاريخ</Label>
-                  <Input id="depTo" type="date" value={apiDepartureTo} onChange={(e) => setApiDepartureTo(e.target.value)} />
+                  <Input
+                    id="depTo"
+                    type="text"
+                    placeholder="dd/MM/yyyy"
+                    value={convertToDisplayFormat(apiDepartureTo)}
+                    onChange={(e) => setApiDepartureTo(convertFromDisplayFormat(e.target.value))}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -692,7 +704,7 @@ export default function Index() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
-              <Button onClick={fetchFromApi}>جلب من API</Button>
+              <Button onClick={fetchFromApi}>ج��ب من API</Button>
             </CardFooter>
           </Card>
 
