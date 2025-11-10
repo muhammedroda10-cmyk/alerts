@@ -254,10 +254,10 @@ export default function Index() {
 
   const basePreview = useMemo(() => {
     const route = `${origin} -> ${destination}`;
-    const dateFmt = formatDateSafely(date, "d/M/yyyy", date);
+    const dateFmt = formatDateSafely(date, "dd/MM/yyyy", date);
 
     if (type === "delay") {
-      const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "dd/MM/yyyy")})` : "";
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
@@ -273,7 +273,7 @@ export default function Index() {
     }
 
     if (type === "advance") {
-      const prevDayNote = isPrevDay && isValidDate(date) ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay && isValidDate(date) ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split('T')[0], "dd/MM/yyyy")})` : "";
       return [
         "🟩 تبليغ تقديم رحلة",
         "تحية طيبة",
@@ -302,7 +302,7 @@ export default function Index() {
     }
 
     if (type === "number_time_delay") {
-      const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const nextDayNote = isNextDay && isValidDate(date) ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split('T')[0], "dd/MM/yyyy")})` : "";
       return [
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
@@ -319,7 +319,7 @@ export default function Index() {
     }
 
     if (type === "number_time_advance") {
-      const prevDayNote = isPrevDay && isValidDate(date) ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split('T')[0], "yyyy/MM/dd")})` : "";
+      const prevDayNote = isPrevDay && isValidDate(date) ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split('T')[0], "dd/MM/yyyy")})` : "";
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
@@ -606,7 +606,7 @@ export default function Index() {
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto py-8 space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">نظام التبليغات للرحلات</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">نظام التب��يغات للرحلات</h1>
           <p className="text-muted-foreground mt-2">إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم الرحلة والروت وشركة الطيران والتاريخ.</p>
         </div>
 
