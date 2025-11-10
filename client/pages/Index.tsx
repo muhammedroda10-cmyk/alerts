@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import moment from "jalali-moment";
 
 interface NotificationItem {
   id: string;
@@ -298,7 +299,7 @@ export default function Index() {
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم وتغيير رقم",
-        `الرحلة : ${route}`,
+        `الرح��ة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
