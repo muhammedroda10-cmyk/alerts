@@ -720,7 +720,16 @@ export default function Index() {
                 </div>
                 <div>
                   <Label htmlFor="date">تاريخ الرحلة</Label>
-                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                  <Input
+                    id="date"
+                    type="text"
+                    placeholder="dd/MM/yyyy"
+                    value={convertToDisplayFormat(date)}
+                    onChange={(e) => {
+                      const isoDate = convertFromDisplayFormat(e.target.value);
+                      setDate(isoDate);
+                    }}
+                  />
                 </div>
                
               </div>
