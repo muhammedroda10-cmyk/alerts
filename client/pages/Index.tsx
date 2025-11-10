@@ -11,9 +11,6 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import moment from "jalali-moment";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
 
 interface NotificationItem {
   id: string;
@@ -311,7 +308,7 @@ export default function Index() {
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
-        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ران الجديدة: ${newAirline}` : ""),
+        newFlightNumber ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الط��ر��ن الجديدة: ${newAirline}` : ""),
         "",
         "يرجى إبلاغ المسافرين لطفًا ",
         "",
@@ -328,7 +325,7 @@ export default function Index() {
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
-        newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران ا��جديدة: ${newAirline}` : ""),
+        newFlightNumber ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}` : (newAirline ? `شركة الطيران الجديدة: ${newAirline}` : ""),
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
@@ -360,7 +357,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم ا��رحلة :${flightNumber}`,
+        `رقم الرحلة :${flightNumber}`,
         "",
       ].join("\n");
     }
@@ -475,7 +472,7 @@ export default function Index() {
         body: JSON.stringify({ text: aiText, apiKey: geminiKey || undefined, model: geminiModel || undefined }),
       });
       const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data?.message || "فشل ال��حليل");
+      if (!res.ok || data.error) throw new Error(data?.message || "فشل التحليل");
       const d = data.data || {};
 
       if ((d.airline || "").trim()) setAirline(d.airline);
@@ -783,7 +780,7 @@ export default function Index() {
                   <Input id="newFlightNumber" value={newFlightNumber} onChange={(e) => setNewFlightNumber(e.target.value)} placeholder="أدخل الرقم الجديد إن وُجد" />
                 </div>
                 <div>
-                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
+                  <Label htmlFor="newAirline">شركة ا��طيران الجديدة</Label>
                   <Input id="newAirline" value={newAirline} onChange={(e) => setNewAirline(e.target.value)} placeholder="أدخل شركة الطيران الجديدة إن وُجدت" />
                 </div>
                 
