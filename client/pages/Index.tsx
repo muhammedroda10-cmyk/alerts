@@ -620,7 +620,7 @@ export default function Index() {
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="aiText">نص التبليغ</Label>
-              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق نص التبليغ هنا بأي لغة" />
+              <Textarea id="aiText" value={aiText} onChange={(e) => setAiText(e.target.value)} className="min-h-[120px]" placeholder="ألصق ن�� التبليغ هنا بأي لغة" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="geminiKey">Gemini API Key</Label>
@@ -855,7 +855,7 @@ export default function Index() {
                     <pre className="whitespace-pre-wrap text-sm text-muted-foreground max-h-40 overflow-y-auto">{h.message}</pre>
                   </CardContent>
                   <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatDateSafely(h.createdAt, "yyyy/MM/dd HH:mm", "Invalid date")}</span>
+                    <span>{formatDateSafely(h.createdAt, "dd/MM/yyyy HH:mm", "Invalid date")}</span>
                     <div className="flex gap-2">
                       <Button size="sm" variant="destructive" onClick={() => setHistory((arr) => arr.filter((x) => x.id !== h.id))}>حذف</Button>
                       <Button size="sm" onClick={() => copy(h.message)}>نسخ</Button>
