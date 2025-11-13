@@ -97,7 +97,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     const msel = (parsed.model || "").trim();
     const preferred = msel ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`] : [];
-    const models = [...preferred, "gemini-2.5-flash", "gemini-2.5-flash-latest", "gemini-1.5-flash-latest", "gemini-1.5-flash-8b-latest"];
+    const models = [...preferred, "gemini-2.0-flash", "gemini-2.0-flash-latest", "gemini-1.5-flash-latest", "gemini-1.5-flash"];
 
     const payload = {
       contents: [
