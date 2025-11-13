@@ -10,16 +10,26 @@ const RequestSchema = z.object({
 
 function normalizeDigits(input: string): string {
   const map: Record<string, string> = {
-    "٠": "0", "۰": "0",
-    "١": "1", "۱": "1",
-    "٢": "2", "۲": "2",
-    "٣": "3", "۳": "3",
-    "٤": "4", "۴": "4",
-    "٥": "5", "۵": "5",
-    "٦": "6", "۶": "6",
-    "٧": "7", "۷": "7",
-    "٨": "8", "۸": "8",
-    "٩": "9", "۹": "9",
+    "٠": "0",
+    "۰": "0",
+    "١": "1",
+    "۱": "1",
+    "٢": "2",
+    "۲": "2",
+    "٣": "3",
+    "۳": "3",
+    "٤": "4",
+    "۴": "4",
+    "٥": "5",
+    "۵": "5",
+    "٦": "6",
+    "۶": "6",
+    "٧": "7",
+    "۷": "7",
+    "٨": "8",
+    "۸": "8",
+    "٩": "9",
+    "۹": "9",
   };
   return input.replace(/[٠-٩۰-۹]/g, (d) => map[d] || d);
 }
@@ -30,9 +40,16 @@ function extractJson(text: string): any {
   const body = fence ? fence[1] : cleaned;
   const firstBrace = body.indexOf("{");
   const lastBrace = body.lastIndexOf("}");
-  const jsonStr = firstBrace >= 0 && lastBrace >= 0 ? body.slice(firstBrace, lastBrace + 1) : body;
-  try { return JSON.parse(jsonStr); } catch {
-    try { return JSON.parse(normalizeDigits(jsonStr)); } catch {
+  const jsonStr =
+    firstBrace >= 0 && lastBrace >= 0
+      ? body.slice(firstBrace, lastBrace + 1)
+      : body;
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    try {
+      return JSON.parse(normalizeDigits(jsonStr));
+    } catch {
       return {};
     }
   }
@@ -44,13 +61,18 @@ function normalizeDateToISO(input?: string): string | undefined {
   if (!input) return undefined;
 
   // Normalize and clean the input string
-  const s = normalizeDigits(String(input)).replace(/\./g, "/").replace(/-/g, "/").trim();
+  const s = normalizeDigits(String(input))
+    .replace(/\./g, "/")
+    .replace(/-/g, "/")
+    .trim();
 
   // Check for standard YYYY/MM/DD format (Gemini returns dates in this format)
   const m = s.match(/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/);
   if (!m) return undefined;
 
-  const y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
+  const y = parseInt(m[1], 10),
+    mo = parseInt(m[2], 10),
+    d = parseInt(m[3], 10);
 
   // Return the date as-is in yyyy-MM-dd format
   // Do NOT convert Jalali dates here - the frontend will handle conversion using jalali-moment
@@ -77,7 +99,10 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
   try {
     const parsed = RequestSchema.parse(req.body || {});
     const key = (parsed.apiKey || process.env.GEMINI_API_KEY || "").trim();
-    if (!key) return res.status(400).json({ error: true, message: "Gemini API key is required" });
+    if (!key)
+      return res
+        .status(400)
+        .json({ error: true, message: "Gemini API key is required" });
 
     const instruction = [
       "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
@@ -96,8 +121,16 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
 
     const msel = (parsed.model || "").trim();
-    const preferred = msel ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`] : [];
-    const models = [...preferred, "gemini-2.0-flash", "gemini-2.0-flash-latest", "gemini-1.5-flash-latest", "gemini-1.5-flash"];
+    const preferred = msel
+      ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`]
+      : [];
+    const models = [
+      ...preferred,
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-latest",
+      "gemini-1.5-flash-latest",
+      "gemini-1.5-flash",
+    ];
 
     const payload = {
       contents: [
@@ -116,7 +149,11 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     for (const model of models) {
       for (const ver of ["v1beta", "v1"]) {
         const url = `https://generativelanguage.googleapis.com/${ver}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+        const r = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
         if (r.ok) {
           okData = await r.json();
           okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
@@ -124,7 +161,12 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
         } else {
           lastStatus = r.status;
           lastBody = await r.text();
-          if (!(r.status === 404 || /NOT_FOUND|not found|unsupported/i.test(lastBody))) {
+          if (
+            !(
+              r.status === 404 ||
+              /NOT_FOUND|not found|unsupported/i.test(lastBody)
+            )
+          ) {
             // Non-recoverable error, stop trying further
             break;
           }
@@ -134,17 +176,29 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     }
 
     if (!okData) {
-      return res.status(lastStatus).json({ error: true, message: lastBody || "Gemini request failed" });
+      return res
+        .status(lastStatus)
+        .json({ error: true, message: lastBody || "Gemini request failed" });
     }
 
     const text = okText;
     const obj = extractJson(text);
 
     const airline = String(obj.airline || "").trim();
-    const flightNumber = String(obj.flightNumber || obj.flight_no || obj.flight || "").toString().trim();
-    const dateISO = normalizeDateToISO(String(obj.date || obj.flightDate || ""));
-    const originRaw = String(obj.origin || obj.from || "").toString().trim();
-    const destinationRaw = String(obj.destination || obj.to || "").toString().trim();
+    const flightNumber = String(
+      obj.flightNumber || obj.flight_no || obj.flight || "",
+    )
+      .toString()
+      .trim();
+    const dateISO = normalizeDateToISO(
+      String(obj.date || obj.flightDate || ""),
+    );
+    const originRaw = String(obj.origin || obj.from || "")
+      .toString()
+      .trim();
+    const destinationRaw = String(obj.destination || obj.to || "")
+      .toString()
+      .trim();
 
     const toIata = (s: string): string => {
       const up = (s || "").trim().toUpperCase();
@@ -160,13 +214,24 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const destination = toIata(destinationRaw);
 
     const rawType = String(obj.type || "").toLowerCase();
-    const newTime = normalizeTime24(obj.newTime || obj.time || obj.new_time || "");
+    const newTime = normalizeTime24(
+      obj.newTime || obj.time || obj.new_time || "",
+    );
     const oldTime = normalizeTime24(obj.oldTime || obj.old_time || "");
-    const newFlightNumber = String(obj.newFlightNumber || obj.new_flight_number || "").trim();
+    const newFlightNumber = String(
+      obj.newFlightNumber || obj.new_flight_number || "",
+    ).trim();
     const newAirline = String(obj.newAirline || obj.new_airline || "").trim();
 
     const inferredType = (() => {
-      const allowed = ["delay", "advance", "cancel", "number_change", "number_time_delay", "number_time_advance"];
+      const allowed = [
+        "delay",
+        "advance",
+        "cancel",
+        "number_change",
+        "number_time_delay",
+        "number_time_advance",
+      ];
       if (allowed.includes(rawType)) return rawType;
       if (newFlightNumber && newTime) return "number_time_delay"; // default to delay if time exists
       if (newFlightNumber) return "number_change";
@@ -189,6 +254,8 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     return res.json({ data: result, raw: text });
   } catch (err: any) {
-    return res.status(400).json({ error: true, message: err?.message || "Invalid request" });
+    return res
+      .status(400)
+      .json({ error: true, message: err?.message || "Invalid request" });
   }
 };
