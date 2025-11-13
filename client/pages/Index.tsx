@@ -246,7 +246,7 @@ export default function Index() {
   // AI parse states
   const [aiText, setAiText] = useState("");
   const [geminiKey, setGeminiKey] = useState("");
-  const [geminiModel, setGeminiModel] = useState("gemini-2.5-flash");
+  const [geminiModel, setGeminiModel] = useState("gemini-1.5-flash-latest");
   const [aiLoading, setAiLoading] = useState(false);
   const GEMINI_KEY_STORAGE = "gemini_api_key";
   const GEMINI_MODEL_STORAGE = "gemini_model";
@@ -701,7 +701,7 @@ export default function Index() {
 
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>بيانات الرحلة</CardTitle>
+              <CardTitle>بيانا�� الرحلة</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-[1fr_auto_1fr_1fr] items-end gap-4">
