@@ -390,8 +390,8 @@ export default function Index() {
       return [
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
-        "نود إعلام��م بأنه تم تأخير وتغيير رقم",
-        `الرحلة : ${route}`,
+        "نود إعلامكم بأنه تم تأخير وتغيير رقم",
+        `ال��حلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
@@ -952,7 +952,7 @@ export default function Index() {
                   </Button>
                 </div>
                 <div>
-                  <Label htmlFor="destination">الروت - إل��</Label>
+                  <Label htmlFor="destination">الروت - إلى</Label>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 25 24"
@@ -1075,11 +1075,19 @@ export default function Index() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="supplier">السبلاير / التوقيع</Label>
+                  <Label htmlFor="supplier">
+                    السبلاير / التوقيع
+                    {selectedSupplierFilter && (
+                      <span className="text-xs text-muted-foreground ms-2">
+                        ({supplierStats.get(selectedSupplierFilter)?.pnrCount} PNR)
+                      </span>
+                    )}
+                  </Label>
                   <Input
                     id="supplier"
-                    value={selectedSupplierFilter ? `${selectedSupplierFilter} - ${supplier}` : supplier}
+                    value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
+                    placeholder={selectedSupplierFilter || "أدخل السبلاير / التوقيع"}
                   />
                 </div>
               </div>
