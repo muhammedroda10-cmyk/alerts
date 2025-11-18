@@ -418,7 +418,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `*رقم الرحلة القديم: ${flightNumber}*`,
+        `*رقم الر��لة القديم: ${flightNumber}*`,
         newFlightNumber
           ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}`
           : newAirline
@@ -708,6 +708,7 @@ export default function Index() {
   const [deliveredGroups, setDeliveredGroups] = useState<
     Record<string, boolean>
   >({});
+  const [selectedSupplierFilter, setSelectedSupplierFilter] = useState<string | null>(null);
 
   const groupedNotifications = useMemo(() => {
     const items: {
@@ -1034,7 +1035,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type">نوع التبليغ</Label>
+                  <Label htmlFor="type">نوع ال��بليغ</Label>
                   <Select value={type} onValueChange={setType}>
                     <SelectTrigger id="type">
                       <SelectValue placeholder="اختر النوع" />
