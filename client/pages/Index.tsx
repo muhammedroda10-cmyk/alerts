@@ -354,7 +354,7 @@ export default function Index() {
       return [
         "🟩 تبليغ تقديم رحلة",
         "تحية طيبة",
-        "��ود إعلامكم بأنه تم تقديم",
+        "ود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -391,7 +391,7 @@ export default function Index() {
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير وتغيير رقم",
-        `ال��حلة : ${route}`,
+        `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
@@ -418,7 +418,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `*رقم الر��لة القديم: ${flightNumber}*`,
+        `*رقم الرحلة القديم: ${flightNumber}*`,
         newFlightNumber
           ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}`
           : newAirline
@@ -854,7 +854,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="depFrom"> تاريخ الرح��ة</Label>
+                  <Label htmlFor="depFrom"> تاريخ الرحلة</Label>
                   <Input
                     id="depFrom"
                     type="text"
@@ -910,7 +910,7 @@ export default function Index() {
 
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>بيانا�� الرحلة</CardTitle>
+              <CardTitle>بيانات الرحلة</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-[1fr_auto_1fr_1fr] items-end gap-4">
@@ -970,7 +970,7 @@ export default function Index() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date">تاري�� الرحلة</Label>
+                  <Label htmlFor="date">تاريخ الرحلة</Label>
                   <Input
                     id="date"
                     type="text"
@@ -1003,7 +1003,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="newFlightNumber">رقم الر��لة الجديد</Label>
+                  <Label htmlFor="newFlightNumber">رقم الرحلة الجديد</Label>
                   <Input
                     id="newFlightNumber"
                     value={newFlightNumber}
@@ -1053,7 +1053,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type">نوع ال��بليغ</Label>
+                  <Label htmlFor="type">نوع التبليغ</Label>
                   <Select value={type} onValueChange={setType}>
                     <SelectTrigger id="type">
                       <SelectValue placeholder="اختر النوع" />
