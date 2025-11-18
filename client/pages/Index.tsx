@@ -354,7 +354,7 @@ export default function Index() {
       return [
         "🟩 تبليغ تقديم رحلة",
         "تحية طيبة",
-        "نود إعلامكم بأنه تم تقديم",
+        "��ود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -752,6 +752,24 @@ export default function Index() {
     return items;
   }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes]);
 
+  const supplierStats = useMemo(() => {
+    const stats = new Map<string, { pnrCount: number; notifications: number }>();
+    for (const item of groupedNotifications) {
+      if (!stats.has(item.supplier)) {
+        stats.set(item.supplier, { pnrCount: 0, notifications: 0 });
+      }
+      const stat = stats.get(item.supplier)!;
+      stat.pnrCount += item.pnrs.length;
+      stat.notifications += 1;
+    }
+    return stats;
+  }, [groupedNotifications]);
+
+  const filteredNotifications = useMemo(() => {
+    if (!selectedSupplierFilter) return groupedNotifications;
+    return groupedNotifications.filter((item) => item.supplier === selectedSupplierFilter);
+  }, [groupedNotifications, selectedSupplierFilter]);
+
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto py-8 space-y-8">
@@ -952,7 +970,7 @@ export default function Index() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date">تاريخ الرحلة</Label>
+                  <Label htmlFor="date">تاري�� الرحلة</Label>
                   <Input
                     id="date"
                     type="text"
@@ -985,7 +1003,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="newFlightNumber">رقم الرحلة الجديد</Label>
+                  <Label htmlFor="newFlightNumber">رقم الر��لة الجديد</Label>
                   <Input
                     id="newFlightNumber"
                     value={newFlightNumber}
