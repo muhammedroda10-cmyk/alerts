@@ -708,7 +708,9 @@ export default function Index() {
   const [deliveredGroups, setDeliveredGroups] = useState<
     Record<string, boolean>
   >({});
-  const [selectedSupplierFilter, setSelectedSupplierFilter] = useState<string | null>(null);
+  const [selectedSupplierFilter, setSelectedSupplierFilter] = useState<
+    string | null
+  >(null);
 
   const groupedNotifications = useMemo(() => {
     const items: {
@@ -753,7 +755,10 @@ export default function Index() {
   }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes]);
 
   const supplierStats = useMemo(() => {
-    const stats = new Map<string, { pnrCount: number; notifications: number }>();
+    const stats = new Map<
+      string,
+      { pnrCount: number; notifications: number }
+    >();
     for (const item of groupedNotifications) {
       if (!stats.has(item.supplier)) {
         stats.set(item.supplier, { pnrCount: 0, notifications: 0 });
@@ -767,7 +772,9 @@ export default function Index() {
 
   const filteredNotifications = useMemo(() => {
     if (!selectedSupplierFilter) return groupedNotifications;
-    return groupedNotifications.filter((item) => item.supplier === selectedSupplierFilter);
+    return groupedNotifications.filter(
+      (item) => item.supplier === selectedSupplierFilter,
+    );
   }, [groupedNotifications, selectedSupplierFilter]);
 
   return (
@@ -1079,7 +1086,8 @@ export default function Index() {
                     السبلاير / التوقيع
                     {selectedSupplierFilter && (
                       <span className="text-xs text-muted-foreground ms-2">
-                        ({supplierStats.get(selectedSupplierFilter)?.pnrCount} PNR)
+                        ({supplierStats.get(selectedSupplierFilter)?.pnrCount}{" "}
+                        PNR)
                       </span>
                     )}
                   </Label>
@@ -1087,7 +1095,9 @@ export default function Index() {
                     id="supplier"
                     value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
-                    placeholder={selectedSupplierFilter || "أدخل السبلاير / التوقيع"}
+                    placeholder={
+                      selectedSupplierFilter || "أدخل السبلاير / التوقيع"
+                    }
                   />
                 </div>
               </div>
@@ -1194,7 +1204,9 @@ export default function Index() {
                 <h3 className="font-bold mb-3">الموردين</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   <Button
-                    variant={selectedSupplierFilter === null ? "default" : "outline"}
+                    variant={
+                      selectedSupplierFilter === null ? "default" : "outline"
+                    }
                     className="h-auto flex flex-col items-center justify-center py-3 px-2"
                     onClick={() => setSelectedSupplierFilter(null)}
                   >
@@ -1206,11 +1218,15 @@ export default function Index() {
                   {Array.from(supplierStats.entries()).map(([sup, stats]) => (
                     <Button
                       key={sup}
-                      variant={selectedSupplierFilter === sup ? "default" : "outline"}
+                      variant={
+                        selectedSupplierFilter === sup ? "default" : "outline"
+                      }
                       className="h-auto flex flex-col items-center justify-center py-3 px-2 text-center"
                       onClick={() => setSelectedSupplierFilter(sup)}
                     >
-                      <div className="text-sm font-semibold line-clamp-2">{sup}</div>
+                      <div className="text-sm font-semibold line-clamp-2">
+                        {sup}
+                      </div>
                       <div className="text-xs text-muted-foreground mt-1">
                         {stats.pnrCount} PNR
                       </div>
