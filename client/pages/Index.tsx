@@ -1179,13 +1179,47 @@ export default function Index() {
               </div>
             </div>
 
-            {groupedNotifications.length === 0 ? (
+            {/* Supplier Filter Cards */}
+            {groupedNotifications.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-bold mb-3">الموردين</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  <Button
+                    variant={selectedSupplierFilter === null ? "default" : "outline"}
+                    className="h-auto flex flex-col items-center justify-center py-3 px-2"
+                    onClick={() => setSelectedSupplierFilter(null)}
+                  >
+                    <div className="text-lg font-bold">الكل</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {groupedNotifications.length}
+                    </div>
+                  </Button>
+                  {Array.from(supplierStats.entries()).map(([sup, stats]) => (
+                    <Button
+                      key={sup}
+                      variant={selectedSupplierFilter === sup ? "default" : "outline"}
+                      className="h-auto flex flex-col items-center justify-center py-3 px-2 text-center"
+                      onClick={() => setSelectedSupplierFilter(sup)}
+                    >
+                      <div className="text-sm font-semibold line-clamp-2">{sup}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {stats.pnrCount} PNR
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {filteredNotifications.length === 0 ? (
               <p className="text-muted-foreground">
-                لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.
+                {groupedNotifications.length === 0
+                  ? 'لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.'
+                  : "لا توجد تبليغات لهذا المورد"}
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {groupedNotifications.map((bn) => (
+                {filteredNotifications.map((bn) => (
                   <Card
                     key={bn.id}
                     className={cn(
