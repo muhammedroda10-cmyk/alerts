@@ -854,7 +854,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="depFrom"> تاريخ الرحلة</Label>
+                  <Label htmlFor="depFrom"> تاريخ الرح��ة</Label>
                   <Input
                     id="depFrom"
                     type="text"
@@ -1132,6 +1132,7 @@ export default function Index() {
                   setCopiedGroups({});
                   setDeliveredGroups({});
                   setHiddenGroups({});
+                  setSelectedSupplierFilter(null);
                   toast({
                     title: "تمت إعادة الضبط",
                     description: "تصفير حالات التبليغ",
