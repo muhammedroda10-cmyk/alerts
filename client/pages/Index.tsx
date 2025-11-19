@@ -383,7 +383,7 @@ export default function Index() {
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber
-          ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}`
+          ? `رقم الرحلة الجدي�� ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}`
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
@@ -680,7 +680,7 @@ export default function Index() {
     }
   };
 
-  type PnrSupplier = { pnr: string; supplier: string; apiAirline?: string };
+  type PnrSupplier = { pnr: string; supplier: string; apiAirline?: string; booking_status?: string };
   const matchedByTitle = useMemo(() => {
     const map = new Map<string, PnrSupplier[]>();
     const wantDate = normalizeDateForCompare(date);
@@ -705,6 +705,7 @@ export default function Index() {
           pnr: t.pnr,
           supplier: String(t.supplier || "غير معروف"),
           apiAirline: t.airline,
+          booking_status: t.booking_status,
         });
       map.set(key, list);
     }
@@ -1099,7 +1100,7 @@ export default function Index() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="delay">تأخير</SelectItem>
-                      <SelectItem value="advance">تقديم</SelectItem>
+                      <SelectItem value="advance">ت��ديم</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
                       <SelectItem value="number_change">
                         تغيير رقم الرحلة
