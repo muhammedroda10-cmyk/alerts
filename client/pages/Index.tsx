@@ -688,7 +688,8 @@ export default function Index() {
         if (!equalCI(t.origin, origin) || !equalCI(t.destination, destination))
           continue;
       }
-      if (airline && t.airline && !containsKeyword(t.airline, airline)) continue;
+      if (airline && t.airline && !containsKeyword(t.airline, airline))
+        continue;
       if (t.date) {
         const legDate = normalizeDateForCompare(t.date);
         if (legDate && wantDate && legDate !== wantDate) continue;
@@ -696,7 +697,11 @@ export default function Index() {
       const key = String(t.title || "غير معروف").trim();
       const list = map.get(key) ?? [];
       if (!list.find((ps) => ps.pnr === t.pnr))
-        list.push({ pnr: t.pnr, supplier: String(t.supplier || "غير معروف"), apiAirline: t.airline });
+        list.push({
+          pnr: t.pnr,
+          supplier: String(t.supplier || "غير معروف"),
+          apiAirline: t.airline,
+        });
       map.set(key, list);
     }
     return map;
@@ -728,7 +733,10 @@ export default function Index() {
       body: string;
     }[] = [];
     for (const [groupName, pnrsSuppliers] of matchedByTitle.entries()) {
-      const bySupplier = new Map<string, { pnrs: string[]; apiAirline?: string }>();
+      const bySupplier = new Map<
+        string,
+        { pnrs: string[]; apiAirline?: string }
+      >();
       const supplierOrder: string[] = [];
       for (const { pnr, supplier: s, apiAirline } of pnrsSuppliers) {
         const sup = s || "غير معروف";
