@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -401,7 +402,7 @@ export default function Index() {
       return [
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
-        "نود إعلامكم بأنه تم تأخير وتغيير رقم",
+        "نود إعل��مكم بأنه تم تأخير وتغيير رقم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
