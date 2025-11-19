@@ -672,7 +672,7 @@ export default function Index() {
       setCopiedGroups({});
       setDeliveredGroups({});
       setEditedBodies({});
-      toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
+      toast({ title: "��م الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
       toast({
         title: "خطأ في الجلب",
@@ -714,7 +714,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال ال��بول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -821,7 +821,7 @@ export default function Index() {
             نظام التبليغات للرحلات
           </h1>
           <p className="text-muted-foreground mt-2">
-            إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم
+            إنش��ء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم
             الرحلة والروت وشركة الطيران والتاريخ.
           </p>
         </div>
@@ -849,7 +849,7 @@ export default function Index() {
                   type="password"
                   value={geminiKey}
                   onChange={(e) => setGeminiKey(e.target.value)}
-                  placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)"
+                  placeholder="أدخل مفتاح Gemini (اخت��اري إن تم ضبطه في الخادم)"
                 />
                 <p className="text-xs text-muted-foreground">
                   يُحفظ محليًا في المتصفح فقط.
@@ -1315,18 +1315,13 @@ export default function Index() {
                         <span>{bn.supplier}</span>
                         {bn.booking_status && (
                           <Badge
-                            variant={
+                            className={
                               bn.booking_status?.toUpperCase() === "CANCELED" ||
                               bn.booking_status?.toUpperCase() === "CANCELLED"
-                                ? "destructive"
+                                ? "bg-red-600 text-white hover:bg-red-700"
                                 : bn.booking_status?.toUpperCase() === "ISSUED"
-                                  ? "default"
-                                  : "secondary"
-                            }
-                            className={
-                              bn.booking_status?.toUpperCase() === "ISSUED"
-                                ? "bg-green-600 hover:bg-green-700"
-                                : ""
+                                  ? "bg-green-600 text-white hover:bg-green-700"
+                                  : "bg-gray-400 text-white hover:bg-gray-500"
                             }
                           >
                             {bn.booking_status}
