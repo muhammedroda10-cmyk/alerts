@@ -337,12 +337,14 @@ export default function Index() {
 
   const basePreview = useMemo(() => {
     const route = `${origin} -> ${destination}`;
+    const dateObj = new Date(date);
+    const isDateValid = isValidDate(dateObj);
     const dateFmt = formatDateSafely(date, "dd/MM/yyyy", date);
     
 
     if (type === "delay") {
       const nextDayNote =
-        isNextDay && isValidDate(date)
+        isNextDay && isDateValid
           ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split("T")[0], "dd/MM/yyyy")})`
           : "";
       return [
