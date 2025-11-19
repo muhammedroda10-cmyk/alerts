@@ -681,7 +681,12 @@ export default function Index() {
     }
   };
 
-  type PnrSupplier = { pnr: string; supplier: string; apiAirline?: string; booking_status?: string };
+  type PnrSupplier = {
+    pnr: string;
+    supplier: string;
+    apiAirline?: string;
+    booking_status?: string;
+  };
   const matchedByTitle = useMemo(() => {
     const map = new Map<string, PnrSupplier[]>();
     const wantDate = normalizeDateForCompare(date);
@@ -745,7 +750,12 @@ export default function Index() {
         { pnrs: string[]; apiAirline?: string; booking_status?: string }
       >();
       const supplierOrder: string[] = [];
-      for (const { pnr, supplier: s, apiAirline, booking_status } of pnrsSuppliers) {
+      for (const {
+        pnr,
+        supplier: s,
+        apiAirline,
+        booking_status,
+      } of pnrsSuppliers) {
         const sup = s || "غير معروف";
         if (!bySupplier.has(sup)) {
           bySupplier.set(sup, { pnrs: [], apiAirline, booking_status });
@@ -1298,22 +1308,21 @@ export default function Index() {
                         <span className="text-xs text-muted-foreground">
                           ({bn.pnrs.length} PNR)
                         </span>
-                        
                       </CardTitle>
                       {bn.booking_status && (
-                          <Badge
-                            className={
-                              bn.booking_status?.toUpperCase() === "CANCELED" ||
-                              bn.booking_status?.toUpperCase() === "CANCELLED"
-                                ? "bg-red-600 text-white hover:bg-red-700"
-                                : bn.booking_status?.toUpperCase() === "ISSUED"
-                                  ? "bg-green-600 text-white hover:bg-green-700"
-                                  : "bg-gray-400 text-white hover:bg-gray-500"
-                            }
-                          >
-                            {bn.booking_status}
-                          </Badge>
-                        )}
+                        <Badge
+                          className={
+                            bn.booking_status?.toUpperCase() === "CANCELED" ||
+                            bn.booking_status?.toUpperCase() === "CANCELLED"
+                              ? "bg-red-600 text-white hover:bg-red-700"
+                              : bn.booking_status?.toUpperCase() === "ISSUED"
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-gray-400 text-white hover:bg-gray-500"
+                          }
+                        >
+                          {bn.booking_status}
+                        </Badge>
+                      )}
                     </CardHeader>
                     <CardContent>
                       <Textarea
@@ -1328,7 +1337,6 @@ export default function Index() {
                       />
                       <div className="mt-2 text-xs text-muted-foreground text-right flex items-center justify-end gap-2">
                         <span>{bn.supplier}</span>
-                        
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
