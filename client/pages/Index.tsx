@@ -407,7 +407,7 @@ export default function Index() {
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
-        `الوقت الق��يم : *${oldTime}*`,
+        `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -728,19 +728,32 @@ export default function Index() {
       body: string;
     }[] = [];
     for (const [groupName, pnrsSuppliers] of matchedByTitle.entries()) {
-      const bySupplier = new Map<string, string[]>();
+      const bySupplier = new Map<string, { pnrs: string[]; apiAirline?: string }>();
       const supplierOrder: string[] = [];
-      for (const { pnr, supplier: s } of pnrsSuppliers) {
+      for (const { pnr, supplier: s, apiAirline } of pnrsSuppliers) {
         const sup = s || "غير معروف";
         if (!bySupplier.has(sup)) {
-          bySupplier.set(sup, []);
+          bySupplier.set(sup, { pnrs: [], apiAirline });
           supplierOrder.push(sup);
         }
-        bySupplier.get(sup)!.push(pnr);
+        bySupplier.get(sup)!.pnrs.push(pnr);
       }
       for (const sup of supplierOrder) {
-        const list = bySupplier.get(sup)!;
-        const lines: string[] = [basePreview];
+        const { pnrs: list, apiAirline } = bySupplier.get(sup)!;
+
+        // Build preview with actual airline from API (if available), otherwise use user input
+        const actualAirline = apiAirline || airline;
+        const previewLines = basePreview.split("\n");
+        const updatedPreview = previewLines
+          .map((line) => {
+            if (line.includes("على متن طيران :")) {
+              return ` على متن طيران :${actualAirline}`;
+            }
+            return line;
+          })
+          .join("\n");
+
+        const lines: string[] = [updatedPreview];
         const note = (supplierNotes[sup] || DEFAULT_SUPPLIER_NOTE).trim();
 
         for (const p of list) lines.push(`*رقم الحجز (PNR) : ${p}*`);
@@ -1156,7 +1169,7 @@ export default function Index() {
                   });
                 }}
               >
-                تصفير الحالات
+                ت��فير الحالات
               </Button>
             </div>
           </CardHeader>
@@ -1247,7 +1260,7 @@ export default function Index() {
               <p className="text-muted-foreground">
                 {groupedNotifications.length === 0
                   ? 'لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.'
-                  : "لا توج�� تبليغات لهذا المورد"}
+                  : "لا توجد تبليغات لهذا المورد"}
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
