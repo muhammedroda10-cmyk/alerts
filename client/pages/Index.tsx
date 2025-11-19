@@ -363,7 +363,7 @@ export default function Index() {
 
     if (type === "advance") {
       const prevDayNote =
-        isPrevDay && isValidDate(date)
+        isPrevDay && isDateValid
           ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split("T")[0], "dd/MM/yyyy")})`
           : "";
       return [
@@ -399,7 +399,7 @@ export default function Index() {
 
     if (type === "number_time_delay") {
       const nextDayNote =
-        isNextDay && isValidDate(date)
+        isNextDay && isDateValid
           ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split("T")[0], "dd/MM/yyyy")})`
           : "";
       return [
@@ -423,7 +423,7 @@ export default function Index() {
 
     if (type === "number_time_advance") {
       const prevDayNote =
-        isPrevDay && isValidDate(date)
+        isPrevDay && isDateValid
           ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split("T")[0], "dd/MM/yyyy")})`
           : "";
       return [
