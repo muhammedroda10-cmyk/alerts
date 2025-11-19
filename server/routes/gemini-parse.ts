@@ -111,7 +111,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
       "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
       "- Use 24-hour HH:mm for times.",
-      "- Use IATA Airlines names only.",
+      "- Use IATA Airlines names only first airline name dont include air or airlines in it.",
       "- Normalize digits to Western numerals.",
       "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
       "- If something is missing in the text, set it to an empty string.",
