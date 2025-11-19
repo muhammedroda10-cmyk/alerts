@@ -384,7 +384,7 @@ export default function Index() {
         "",
         `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber
-          ? `رقم الرحلة الجدي�� ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}`
+          ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}`
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
@@ -583,7 +583,7 @@ export default function Index() {
       });
       const data = await res.json();
       if (!res.ok || data.error)
-        throw new Error(data?.message || "��شل التحليل");
+        throw new Error(data?.message || "فشل التحليل");
       const d = data.data || {};
 
       if ((d.airline || "").trim()) setAirline(d.airline);
@@ -672,7 +672,7 @@ export default function Index() {
       setCopiedGroups({});
       setDeliveredGroups({});
       setEditedBodies({});
-      toast({ title: "��م الجلب", description: `${parsed.length} رحلة` });
+      toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
       toast({
         title: "خطأ في الجلب",
@@ -831,7 +831,7 @@ export default function Index() {
             نظام التبليغات للرحلات
           </h1>
           <p className="text-muted-foreground mt-2">
-            إنش��ء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم
+            إنشاء تبليغات مجمّعة حسب userSearchTitle، مع مطابقة دقيقة لرقم
             الرحلة والروت وشركة الطيران والتاريخ.
           </p>
         </div>
@@ -843,7 +843,7 @@ export default function Index() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label htmlFor="aiText">نص ��لتبليغ</Label>
+                <Label htmlFor="aiText">نص التبليغ</Label>
                 <Textarea
                   id="aiText"
                   value={aiText}
@@ -859,7 +859,7 @@ export default function Index() {
                   type="password"
                   value={geminiKey}
                   onChange={(e) => setGeminiKey(e.target.value)}
-                  placeholder="أدخل مفتاح Gemini (اخت��اري إن تم ضبطه في الخادم)"
+                  placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)"
                 />
                 <p className="text-xs text-muted-foreground">
                   يُحفظ محليًا في المتصفح فقط.
@@ -1065,7 +1065,7 @@ export default function Index() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="newAirline">شركة ا��طيران الجديدة</Label>
+                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
                   <Input
                     id="newAirline"
                     value={newAirline}
@@ -1113,7 +1113,7 @@ export default function Index() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="delay">تأخير</SelectItem>
-                      <SelectItem value="advance">ت��ديم</SelectItem>
+                      <SelectItem value="advance">تقديم</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
                       <SelectItem value="number_change">
                         تغيير رقم الرحلة
@@ -1149,7 +1149,7 @@ export default function Index() {
               </div>
             </CardContent>
             <CardContent className="space-y-2">
-              <Label>��لمعاينة (قابلة للتعديل)</Label>
+              <Label>المعاينة (قابلة للتعديل)</Label>
               <Textarea
                 value={singleEdited}
                 onChange={(e) => {
@@ -1229,7 +1229,7 @@ export default function Index() {
                       </Label>
                     </div>
                     <Textarea
-                      placeholder="أدخل ��لاحظتك هنا..."
+                      placeholder="أدخل ملاحظتك هنا..."
                       value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
                       onChange={(e) =>
                         setSupplierNotes((m) => ({
