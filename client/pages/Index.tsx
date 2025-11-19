@@ -47,6 +47,7 @@ interface Trip {
   destination?: string;
   airline?: string;
   supplier?: string;
+  booking_status?: string;
 }
 
 function addDays(dateStr: string, days: number) {
@@ -467,7 +468,7 @@ export default function Index() {
   ]);
 
   const previewSingle = useMemo(() => {
-    return [basePreview, `رقم الحجز (PNR) : `, "", supplier].join("\n");
+    return [basePreview, `رقم ��لحجز (PNR) : `, "", supplier].join("\n");
   }, [basePreview, supplier]);
 
   useEffect(() => {
@@ -831,7 +832,7 @@ export default function Index() {
                   value={aiText}
                   onChange={(e) => setAiText(e.target.value)}
                   className="min-h-[120px]"
-                  placeholder="ألصق نص التبليغ هنا بأي لغة"
+                  placeholder="ألص�� نص التبليغ هنا بأي لغة"
                 />
               </div>
               <div className="space-y-2">
