@@ -341,7 +341,7 @@ export default function Index() {
 
     if (type === "delay") {
       const nextDayNote =
-        isNextDay && isValidDate(date)
+        isNextDay && isValidDate(dateFmt)
           ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split("T")[0], "dd/MM/yyyy")})`
           : "";
       return [
