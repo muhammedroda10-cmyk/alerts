@@ -176,7 +176,7 @@ function parseTrips(raw: string): Trip[] {
         const status = String(
           r.booking_status ?? r.bookingStatus ?? "",
         ).toUpperCase();
-        if (status === "CANCELED" || status === "CANCELLED") continue;
+        if (status === "FAILED" || status === "FAILED") continue;
         const title = String(
           r.userSearchTitle ??
             r.lp_reference ??
