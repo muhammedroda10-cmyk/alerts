@@ -139,6 +139,13 @@ function equalCI(a?: string, b?: string) {
   );
 }
 
+function containsKeyword(text?: string, keyword?: string): boolean {
+  if (!text || !keyword) return false;
+  const cleanText = String(text).trim().toUpperCase();
+  const cleanKeyword = String(keyword).trim().toUpperCase();
+  return cleanText.includes(cleanKeyword);
+}
+
 function parseTrips(raw: string): Trip[] {
   const text = raw.trim();
   if (!text) return [];
@@ -400,7 +407,7 @@ export default function Index() {
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
-        `الوقت القديم : *${oldTime}*`,
+        `الوقت ��لقديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -992,7 +999,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="flightNumber">رقم الرحلة</Label>
+                  <Label htmlFor="flightNumber">رقم الرحل��</Label>
                   <Input
                     id="flightNumber"
                     value={flightNumber}
@@ -1183,7 +1190,7 @@ export default function Index() {
                       </Label>
                     </div>
                     <Textarea
-                      placeholder="أدخل ملاحظتك هنا..."
+                      placeholder="أدخل م��احظتك هنا..."
                       value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
                       onChange={(e) =>
                         setSupplierNotes((m) => ({
