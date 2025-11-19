@@ -402,7 +402,7 @@ export default function Index() {
       return [
         "🟨 تبليغ تأخير وتغيير رقم رحلة",
         "تحية طيبة",
-        "نود إعل��مكم بأنه تم تأخير وتغيير رقم",
+        "نود إعلامكم بأنه تم تأخير وتغيير رقم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -714,7 +714,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال ال��بول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -1311,8 +1311,27 @@ export default function Index() {
                         }
                         className="min-h-[260px]"
                       />
-                      <div className="mt-2 text-xs text-muted-foreground text-right">
-                        {bn.supplier}
+                      <div className="mt-2 text-xs text-muted-foreground text-right flex items-center justify-end gap-2">
+                        <span>{bn.supplier}</span>
+                        {bn.booking_status && (
+                          <Badge
+                            variant={
+                              bn.booking_status?.toUpperCase() === "CANCELED" ||
+                              bn.booking_status?.toUpperCase() === "CANCELLED"
+                                ? "destructive"
+                                : bn.booking_status?.toUpperCase() === "ISSUED"
+                                  ? "default"
+                                  : "secondary"
+                            }
+                            className={
+                              bn.booking_status?.toUpperCase() === "ISSUED"
+                                ? "bg-green-600 hover:bg-green-700"
+                                : ""
+                            }
+                          >
+                            {bn.booking_status}
+                          </Badge>
+                        )}
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
