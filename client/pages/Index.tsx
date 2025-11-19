@@ -1298,7 +1298,9 @@ export default function Index() {
                         <span className="text-xs text-muted-foreground">
                           ({bn.pnrs.length} PNR)
                         </span>
-                        {bn.booking_status && (
+                        
+                      </CardTitle>
+                      {bn.booking_status && (
                           <Badge
                             className={
                               bn.booking_status?.toUpperCase() === "CANCELED" ||
@@ -1312,7 +1314,6 @@ export default function Index() {
                             {bn.booking_status}
                           </Badge>
                         )}
-                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Textarea
