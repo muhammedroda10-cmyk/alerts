@@ -272,6 +272,7 @@ function parseTrips(raw: string): Trip[] {
       destination: get(row, "destination", "to"),
       airline: get(row, "airline"),
       supplier: get(row, "supplier"),
+      booking_status: status || undefined,
     };
     if (trip.buyer && trip.pnr && trip.flightNumber) out.push(trip);
   }
@@ -581,7 +582,7 @@ export default function Index() {
       });
       const data = await res.json();
       if (!res.ok || data.error)
-        throw new Error(data?.message || "فشل التحليل");
+        throw new Error(data?.message || "��شل التحليل");
       const d = data.data || {};
 
       if ((d.airline || "").trim()) setAirline(d.airline);
@@ -828,7 +829,7 @@ export default function Index() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
-                <Label htmlFor="aiText">نص التبليغ</Label>
+                <Label htmlFor="aiText">نص ��لتبليغ</Label>
                 <Textarea
                   id="aiText"
                   value={aiText}
