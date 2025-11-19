@@ -736,23 +736,24 @@ export default function Index() {
       supplier: string;
       pnrs: string[];
       body: string;
+      booking_status?: string;
     }[] = [];
     for (const [groupName, pnrsSuppliers] of matchedByTitle.entries()) {
       const bySupplier = new Map<
         string,
-        { pnrs: string[]; apiAirline?: string }
+        { pnrs: string[]; apiAirline?: string; booking_status?: string }
       >();
       const supplierOrder: string[] = [];
-      for (const { pnr, supplier: s, apiAirline } of pnrsSuppliers) {
+      for (const { pnr, supplier: s, apiAirline, booking_status } of pnrsSuppliers) {
         const sup = s || "غير معروف";
         if (!bySupplier.has(sup)) {
-          bySupplier.set(sup, { pnrs: [], apiAirline });
+          bySupplier.set(sup, { pnrs: [], apiAirline, booking_status });
           supplierOrder.push(sup);
         }
         bySupplier.get(sup)!.pnrs.push(pnr);
       }
       for (const sup of supplierOrder) {
-        const { pnrs: list, apiAirline } = bySupplier.get(sup)!;
+        const { pnrs: list, apiAirline, booking_status } = bySupplier.get(sup)!;
 
         // Build preview with actual airline from API (if available), otherwise use user input
         const actualAirline = apiAirline || airline;
@@ -781,6 +782,7 @@ export default function Index() {
           supplier: sup,
           pnrs: list,
           body: lines.join("\n"),
+          booking_status: booking_status,
         });
       }
     }
@@ -1052,7 +1054,7 @@ export default function Index() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="newAirline">شركة الطيران الجديدة</Label>
+                  <Label htmlFor="newAirline">شركة ا��طيران الجديدة</Label>
                   <Input
                     id="newAirline"
                     value={newAirline}
@@ -1216,7 +1218,7 @@ export default function Index() {
                       </Label>
                     </div>
                     <Textarea
-                      placeholder="أدخل ملاحظتك هنا..."
+                      placeholder="أدخل ��لاحظتك هنا..."
                       value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
                       onChange={(e) =>
                         setSupplierNotes((m) => ({
