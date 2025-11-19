@@ -1298,6 +1298,20 @@ export default function Index() {
                         <span className="text-xs text-muted-foreground">
                           ({bn.pnrs.length} PNR)
                         </span>
+                        {bn.booking_status && (
+                          <Badge
+                            className={
+                              bn.booking_status?.toUpperCase() === "CANCELED" ||
+                              bn.booking_status?.toUpperCase() === "CANCELLED"
+                                ? "bg-red-600 text-white hover:bg-red-700"
+                                : bn.booking_status?.toUpperCase() === "ISSUED"
+                                  ? "bg-green-600 text-white hover:bg-green-700"
+                                  : "bg-gray-400 text-white hover:bg-gray-500"
+                            }
+                          >
+                            {bn.booking_status}
+                          </Badge>
+                        )}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -1313,20 +1327,7 @@ export default function Index() {
                       />
                       <div className="mt-2 text-xs text-muted-foreground text-right flex items-center justify-end gap-2">
                         <span>{bn.supplier}</span>
-                        {bn.booking_status && (
-                          <Badge
-                            className={
-                              bn.booking_status?.toUpperCase() === "CANCELED" ||
-                              bn.booking_status?.toUpperCase() === "CANCELLED"
-                                ? "bg-red-600 text-white hover:bg-red-700"
-                                : bn.booking_status?.toUpperCase() === "ISSUED"
-                                  ? "bg-green-600 text-white hover:bg-green-700"
-                                  : "bg-gray-400 text-white hover:bg-gray-500"
-                            }
-                          >
-                            {bn.booking_status}
-                          </Badge>
-                        )}
+                        
                       </div>
                     </CardContent>
                     <CardFooter className="flex justify-between gap-2">
