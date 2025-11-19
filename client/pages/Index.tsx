@@ -209,6 +209,7 @@ function parseTrips(raw: string): Trip[] {
               destination: leg.arrivalAirportAbb,
               airline: leg.airline ?? r.flight_airline,
               supplier,
+              booking_status: status || undefined,
             };
             if (t.buyer && t.pnr && t.flightNumber) out.push(t);
           }
@@ -225,6 +226,7 @@ function parseTrips(raw: string): Trip[] {
             destination: r.destination ?? r.to,
             airline: r.airline ?? r.flight_airline,
             supplier,
+            booking_status: status || undefined,
           };
           if (t.buyer && t.pnr && t.flightNumber) out.push(t);
         }
@@ -468,7 +470,7 @@ export default function Index() {
   ]);
 
   const previewSingle = useMemo(() => {
-    return [basePreview, `رقم ��لحجز (PNR) : `, "", supplier].join("\n");
+    return [basePreview, `رقم الحجز (PNR) : `, "", supplier].join("\n");
   }, [basePreview, supplier]);
 
   useEffect(() => {
@@ -832,7 +834,7 @@ export default function Index() {
                   value={aiText}
                   onChange={(e) => setAiText(e.target.value)}
                   className="min-h-[120px]"
-                  placeholder="ألص�� نص التبليغ هنا بأي لغة"
+                  placeholder="ألصق نص التبليغ هنا بأي لغة"
                 />
               </div>
               <div className="space-y-2">
@@ -1132,7 +1134,7 @@ export default function Index() {
               </div>
             </CardContent>
             <CardContent className="space-y-2">
-              <Label>المعاينة (قابلة للتعديل)</Label>
+              <Label>��لمعاينة (قابلة للتعديل)</Label>
               <Textarea
                 value={singleEdited}
                 onChange={(e) => {
