@@ -338,7 +338,7 @@ export default function Index() {
   const basePreview = useMemo(() => {
     const route = `${origin} -> ${destination}`;
     const dateFmt = formatDateSafely(date, "dd/MM/yyyy", date);
-    const dateFmt = new Date(dateFmt);
+    
 
     if (type === "delay") {
       const nextDayNote =
