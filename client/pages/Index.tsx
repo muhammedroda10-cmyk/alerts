@@ -407,7 +407,7 @@ export default function Index() {
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
-        `الوقت ��لقديم : *${oldTime}*`,
+        `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -688,7 +688,7 @@ export default function Index() {
         if (!equalCI(t.origin, origin) || !equalCI(t.destination, destination))
           continue;
       }
-      if (airline && t.airline && !equalCI(t.airline, airline)) continue;
+      if (airline && t.airline && !containsKeyword(t.airline, airline)) continue;
       if (t.date) {
         const legDate = normalizeDateForCompare(t.date);
         if (legDate && wantDate && legDate !== wantDate) continue;
@@ -703,7 +703,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذ�� الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -999,7 +999,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="flightNumber">رقم الرحل��</Label>
+                  <Label htmlFor="flightNumber">رقم الرحلة</Label>
                   <Input
                     id="flightNumber"
                     value={flightNumber}
@@ -1151,7 +1151,7 @@ export default function Index() {
                   setHiddenGroups({});
                   setSelectedSupplierFilter(null);
                   toast({
-                    title: "تمت إعادة الضبط",
+                    title: "تمت إعاد�� الضبط",
                     description: "تصفير حالات التبليغ",
                   });
                 }}
@@ -1190,7 +1190,7 @@ export default function Index() {
                       </Label>
                     </div>
                     <Textarea
-                      placeholder="أدخل م��احظتك هنا..."
+                      placeholder="أدخل ملاحظتك هنا..."
                       value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
                       onChange={(e) =>
                         setSupplierNotes((m) => ({
