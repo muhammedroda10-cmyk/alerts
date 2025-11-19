@@ -407,7 +407,7 @@ export default function Index() {
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
-        `الوقت القديم : *${oldTime}*`,
+        `الوقت الق��يم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -676,7 +676,7 @@ export default function Index() {
     }
   };
 
-  type PnrSupplier = { pnr: string; supplier: string };
+  type PnrSupplier = { pnr: string; supplier: string; apiAirline?: string };
   const matchedByTitle = useMemo(() => {
     const map = new Map<string, PnrSupplier[]>();
     const wantDate = normalizeDateForCompare(date);
@@ -696,7 +696,7 @@ export default function Index() {
       const key = String(t.title || "غير معروف").trim();
       const list = map.get(key) ?? [];
       if (!list.find((ps) => ps.pnr === t.pnr))
-        list.push({ pnr: t.pnr, supplier: String(t.supplier || "غير معروف") });
+        list.push({ pnr: t.pnr, supplier: String(t.supplier || "غير معروف"), apiAirline: t.airline });
       map.set(key, list);
     }
     return map;
@@ -1247,7 +1247,7 @@ export default function Index() {
               <p className="text-muted-foreground">
                 {groupedNotifications.length === 0
                   ? 'لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.'
-                  : "لا توجد تبليغات لهذا المورد"}
+                  : "لا توج�� تبليغات لهذا المورد"}
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
