@@ -1292,7 +1292,7 @@ export default function Index() {
                           : "",
                     )}
                   >
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-base">
                         {bn.groupName}{" "}
                         <span className="text-xs text-muted-foreground">
