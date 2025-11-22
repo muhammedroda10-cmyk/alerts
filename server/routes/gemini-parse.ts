@@ -175,13 +175,14 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
       "Rules:",
       "- flightNumber: Only number",
-      "- origin/destination: IATA codes (3 uppercase letters).",
-      "- date: yyyy/MM/dd (Keep Jalali/Shamsi if present).",
+      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
+      "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
       "- time: HH:mm (24h).",
-      "- airline:THIS IS MANDATORY to be IATA name of airline only as single word (not a code).",
-      "- type options: delay, advance, cancel, number_change, number_time_delay, number_time_advance.",
+      "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
+      "- Normalize digits to Western numerals.",
+      "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
       "- If missing, use empty string.",
-      "Respond with ONLY JSON.",
+      "Respond with only JSON, no explanations.",
     ].join("\n");
 
     const extractionPrompt = `${extractionInstruction}\n\nText to extract:\n${parsed.text}`;
