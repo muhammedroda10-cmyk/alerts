@@ -364,7 +364,7 @@ export default function Index() {
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
-        `الوقت القديم : *${oldTime}*`,
+        `الوقت ا��قديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -1238,7 +1238,7 @@ export default function Index() {
 
         <Card>
           <CardHeader className="flex items-center justify-between">
-            <CardTitle>التبليغات حسب الشركة</CardTitle>
+            <CardTitle>التبلي��ات حسب الشركة</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -1503,6 +1503,65 @@ export default function Index() {
             </div>
           </div>
         )}
+        <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>الإعدادات</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="settingsApiUrl">رابط API</Label>
+                <Input
+                  id="settingsApiUrl"
+                  value={settingsApiUrl}
+                  onChange={(e) => setSettingsApiUrl(e.target.value)}
+                  placeholder="https://api.example.com/endpoint"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settingsApiToken">Bearer Token</Label>
+                <Input
+                  id="settingsApiToken"
+                  type="password"
+                  value={settingsApiToken}
+                  onChange={(e) => setSettingsApiToken(e.target.value)}
+                  placeholder="أدخل التوكن"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settingsGeminiKey">Gemini API Key</Label>
+                <Input
+                  id="settingsGeminiKey"
+                  type="password"
+                  value={settingsGeminiKey}
+                  onChange={(e) => setSettingsGeminiKey(e.target.value)}
+                  placeholder="أدخل مفتاح Gemini (اختياري)"
+                />
+                <p className="text-xs text-muted-foreground">
+                  يُحفظ محليًا في المتصفح فقط.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settingsGeminiModel">Gemini Model</Label>
+                <Input
+                  id="settingsGeminiModel"
+                  value={settingsGeminiModel}
+                  onChange={(e) => setSettingsGeminiModel(e.target.value)}
+                  placeholder="مثال: gemini-2.5-flash-latest"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="secondary"
+                onClick={() => setShowSettingsDialog(false)}
+              >
+                إلغاء
+              </Button>
+              <Button onClick={saveSettings}>حفظ الإعدادات</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <Dialog open={showTokenDialog} onOpenChange={setShowTokenDialog}>
           <DialogContent>
             <DialogHeader>
