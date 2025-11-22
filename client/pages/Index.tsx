@@ -977,7 +977,7 @@ export default function Index() {
                 onClick={fetchFromApi}
                 className="w-full sm:w-auto"
               >
-                جلب مباشر (API)
+                تحميل التبليغات من (API)
               </Button>
             </CardFooter>
           </Card>
