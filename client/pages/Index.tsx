@@ -363,7 +363,7 @@ export default function Index() {
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
-        `الوقت ا��قديم : *${oldTime}*`,
+        `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -437,7 +437,7 @@ export default function Index() {
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
-        "نود إعلام��م بأنه تم تقديم وتغيير رقم",
+        "نود إعلامكم بأنه تم تقديم وتغيير رقم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -649,7 +649,7 @@ export default function Index() {
         setApiFlightNumber(num ? num[1] : String(d.flightNumber));
       }
 
-      toast({ title: "تم الاستخراج", description: "تم ��عبئة الحقول من النص" });
+      toast({ title: "تم الاستخراج", description: "تم تعبئة الحقول من النص" });
     } catch (e: any) {
       toast({
         title: "خطأ في التحليل",
@@ -1082,7 +1082,7 @@ export default function Index() {
                     id="newFlightNumber"
                     value={newFlightNumber}
                     onChange={(e) => setNewFlightNumber(e.target.value)}
-                    placeholder="أدخل الرقم الجديد إن وُ��د"
+                    placeholder="أدخل الرقم الجديد إن وُجد"
                   />
                 </div>
                 <div>
@@ -1200,7 +1200,7 @@ export default function Index() {
 
         <Card>
           <CardHeader className="flex items-center justify-between">
-            <CardTitle>التبلي��ات حسب الشركة</CardTitle>
+            <CardTitle>التبليغات حسب الشركة</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -1306,7 +1306,7 @@ export default function Index() {
             {filteredNotifications.length === 0 ? (
               <p className="text-muted-foreground">
                 {groupedNotifications.length === 0
-                  ? 'لا توجد نتائج. استخدم "جلب من API" ��م أدخل تفاصيل المطابقة.'
+                  ? 'لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.'
                   : "لا توجد تبليغات لهذا المورد"}
               </p>
             ) : (
@@ -1536,7 +1536,7 @@ export default function Index() {
                 type="password"
                 value={tokenCandidate}
                 onChange={(e) => setTokenCandidate(e.target.value)}
-                placeholder="أدخل ���لتوكن"
+                placeholder="أدخل التوكن"
               />
               <p className="text-xs text-muted-foreground">
                 سيتم حفظه في المتصفح للاستخدام القادم.
