@@ -6,32 +6,18 @@ const RequestSchema = z.object({
   apiKey: z.string().optional(),
   targetLocale: z.string().optional(),
   model: z.string().optional(),
-  isTranslation: z.boolean().optional(),
-  includeTranslation: z.boolean().optional(),
+  isTranslation: z.boolean().optional(), // Legacy pure translation mode
+  includeTranslation: z.boolean().optional(), // The combined mode
 });
+
+// --- Helpers ---
 
 function normalizeDigits(input: string): string {
   const map: Record<string, string> = {
-    "٠": "0",
-    "۰": "0",
-    "١": "1",
-    "۱": "1",
-    "٢": "2",
-    "۲": "2",
-    "٣": "3",
-    "۳": "3",
-    "٤": "4",
-    "۴": "4",
-    "٥": "5",
-    "۵": "5",
-    "٦": "6",
-    "۶": "6",
-    "٧": "7",
-    "۷": "7",
-    "٨": "8",
-    "۸": "8",
-    "٩": "9",
-    "۹": "9",
+    "٠": "0", "۰": "0", "١": "1", "۱": "1", "٢": "2", "۲": "2",
+    "٣": "3", "۳": "3", "٤": "4", "۴": "4", "٥": "5", "۵": "5",
+    "٦": "6", "۶": "6", "٧": "7", "۷": "7", "٨": "8", "۸": "8",
+    "٩": "9", "۹": "9",
   };
   return input.replace(/[٠-٩۰-۹]/g, (d) => map[d] || d);
 }
@@ -57,33 +43,22 @@ function extractJson(text: string): any {
   }
 }
 
-const CURRENT_YEAR = new Date().getFullYear();
-
 function normalizeDateToISO(input?: string): string | undefined {
   if (!input) return undefined;
-
-  // Normalize and clean the input string
   const s = normalizeDigits(String(input))
     .replace(/\./g, "/")
     .replace(/-/g, "/")
     .trim();
-
-  // Check for standard YYYY/MM/DD format (Gemini returns dates in this format)
   const m = s.match(/^(\d{4})[\/](\d{1,2})[\/](\d{1,2})$/);
   if (!m) return undefined;
-
   const y = parseInt(m[1], 10),
     mo = parseInt(m[2], 10),
     d = parseInt(m[3], 10);
 
-  // Return the date as-is in yyyy-MM-dd format
-  // Do NOT convert Jalali dates here - the frontend will handle conversion using jalali-moment
-  // Jalali dates will have years in range 1300-1499, Gregorian will be > 1900
+  // Allow Jalali (1300-1499) or Gregorian (1900-2999)
   if ((y >= 1300 && y <= 1499) || (y > 1900 && y < 3000)) {
     return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
   }
-
-  // Fallback for any other case
   return undefined;
 }
 
@@ -97,250 +72,176 @@ function normalizeTime24(input?: string): string | undefined {
   return `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`;
 }
 
-export const handleGeminiParse: RequestHandler = async (req, res) => {
-  try {
-    const parsed = RequestSchema.parse(req.body || {});
-    const key = (parsed.apiKey || process.env.GEMINI_API_KEY || "").trim();
-    if (!key)
-      return res
-        .status(400)
-        .json({ error: true, message: "Gemini API key is required" });
+/**
+ * Reusable helper to call Gemini.
+ * Handles model fallback and fetch logic.
+ */
+async function callGeminiAPI(
+  prompt: string,
+  apiKey: string,
+  preferredModel?: string
+): Promise<string> {
+  const msel = (preferredModel || "").trim();
+  const preferred = msel
+    ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`]
+    : [];
+  
+  const models = [
+    ...preferred,
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-latest",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+  ];
 
-    const isTranslation = parsed.isTranslation === true;
+  const payload = {
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0 },
+  } as const;
 
-    if (isTranslation) {
-      // Translation mode: translate text to Arabic
-      const translationInstruction = [
-        "You are a professional translator.",
-        "Translate the following text to Arabic. Keep the original formatting and structure.",
-        "If the text is already in Arabic, return it as-is.",
-        "Respond with only the translated text, no explanations or metadata.",
-      ].join("\n");
+  let lastStatus = 500;
+  let lastBody = "";
 
-      const userPrompt = `Text to translate:\n\n${parsed.text}`;
-
-      const msel = (parsed.model || "").trim();
-      const preferred = msel
-        ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`]
-        : [];
-      const models = [
-        ...preferred,
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-latest",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-      ];
-
-      const payload = {
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: translationInstruction + "\n\n" + userPrompt }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0,
-        },
-      } as const;
-
-      let okData: any = null;
-      let okText = "";
-      let lastStatus = 500;
-      let lastBody = "";
-
-      for (const model of models) {
-        for (const ver of ["v1beta", "v1"]) {
-          const url = `https://generativelanguage.googleapis.com/${ver}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-          const r = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          if (r.ok) {
-            okData = await r.json();
-            okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-            break;
-          } else {
-            lastStatus = r.status;
-            lastBody = await r.text();
-            if (
-              !(
-                r.status === 404 ||
-                /NOT_FOUND|not found|unsupported/i.test(lastBody)
-              )
-            ) {
-              break;
-            }
-          }
-        }
-        if (okData) break;
-      }
-
-      if (!okData) {
-        return res
-          .status(lastStatus)
-          .json({
-            error: true,
-            message: lastBody || "Translation request failed",
-          });
-      }
-
-      return res.json({ translated: okText.trim() });
-    }
-
-    const hasIncludeTranslation = parsed.includeTranslation === true;
-
-    const instruction = hasIncludeTranslation
-      ? [
-        "You are an expert translator and flight analyst.", // تعزيز الدور
-        "Your task is two-fold: 1. Extract flight details. 2. Translate the full text to Arabic.", // فصل المهام بوضوح
-        "Return a single valid JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline, translated.",
-        "Rules:",
-        "- 'translated': THIS IS MANDATORY. Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.", // تشديد قوي هنا
-        "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD). Deduce codes from city names.",
-        "- Use date format yyyy/MM/dd. Do NOT convert Jalali/Shamsi to Gregorian. Return Jalali as-is. Current Shamsi year: 1404.",
-        "- Use 24-hour HH:mm for times.",
-        "- airline: Use IATA Airlines names only (first name only, remove 'airlines'/'air').",
-        "- Normalize digits to Western numerals.",
-        "- type must be: delay, advance, cancel, number_change, number_time_delay, number_time_advance. Default to 'delay' if only time changes.",
-        "- If a field is missing, use empty string.",
-        "Respond with ONLY valid JSON.",
-      ].join("\n")
-      : [
-        // ... (الكود القديم لحالة عدم وجود ترجمة يبقى كما هو)
-        "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
-        "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
-        "Rules:",
-        "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD).",
-        "- Use date format yyyy/MM/dd. Do NOT convert Jalali/Shamsi dates. Current Shamsi year: 1404.",
-        "- Use 24-hour HH:mm for times.",
-        "- airline: Use IATA Airlines names only.",
-        "- Normalize digits to Western numerals.",
-        "- type must be: delay, advance, cancel, number_change, number_time_delay, number_time_advance.",
-        "- If something is missing, set it to an empty string.",
-        "Respond with only JSON, no explanations.",
-      ].join("\n");
-
-    const userPrompt = `Text to extract from:\n\n${parsed.text}`;
-
-    const msel = (parsed.model || "").trim();
-    const preferred = msel
-      ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`]
-      : [];
-    const models = [
-      ...preferred,
-      "gemini-2.0-flash",
-      "gemini-2.0-flash-latest",
-      "gemini-1.5-flash-latest",
-      "gemini-1.5-flash",
-    ];
-
-    const payload = {
-      contents: [
-        { role: "user", parts: [{ text: instruction + "\n\n" + userPrompt }] },
-      ],
-      generationConfig: {
-        temperature: 0,
-      },
-    } as const;
-
-    let okData: any = null;
-    let okText = "";
-    let lastStatus = 500;
-    let lastBody = "";
-
-    for (const model of models) {
-      for (const ver of ["v1beta", "v1"]) {
-        const url = `https://generativelanguage.googleapis.com/${ver}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+  for (const model of models) {
+    for (const ver of ["v1beta", "v1"]) {
+      const url = `https://generativelanguage.googleapis.com/${ver}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      try {
         const r = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+
         if (r.ok) {
-          okData = await r.json();
-          okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-          break;
+          const data = await r.json();
+          return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
         } else {
           lastStatus = r.status;
           lastBody = await r.text();
-          if (
-            !(
-              r.status === 404 ||
-              /NOT_FOUND|not found|unsupported/i.test(lastBody)
-            )
-          ) {
-            // Non-recoverable error, stop trying further
-            break;
-          }
+          // If 404/Not Found, try next model. Otherwise, if it's a server error, maybe retry?
+          // For now, we treat NOT_FOUND as continue, others as potentially fatal but we try next model anyway just in case.
+           if (
+              !(
+                r.status === 404 ||
+                /NOT_FOUND|not found|unsupported/i.test(lastBody)
+              )
+            ) {
+             // Optional: break on strict auth errors, but continuing acts as a retry mechanism
+            }
         }
+      } catch (e) {
+        // Network error, try next
       }
-      if (okData) break;
+    }
+  }
+
+  throw new Error(lastBody || `Gemini request failed with status ${lastStatus}`);
+}
+
+// --- Main Handler ---
+
+export const handleGeminiParse: RequestHandler = async (req, res) => {
+  try {
+    const parsed = RequestSchema.parse(req.body || {});
+    const key = (parsed.apiKey || process.env.GEMINI_API_KEY || "").trim();
+    if (!key) {
+      return res.status(400).json({ error: true, message: "Gemini API key is required" });
     }
 
-    if (!okData) {
-      return res
-        .status(lastStatus)
-        .json({ error: true, message: lastBody || "Gemini request failed" });
+    // 1. Handle Pure Translation Mode (Legacy)
+    if (parsed.isTranslation === true) {
+      const translationInstruction = [
+        "You are a professional translator.",
+        "Translate the following text to Arabic. Keep the original formatting.",
+        "If text is Arabic, return as-is.",
+        "Respond ONLY with the translated text.",
+      ].join("\n");
+
+      const text = await callGeminiAPI(
+        `${translationInstruction}\n\nText:\n${parsed.text}`,
+        key,
+        parsed.model
+      );
+      return res.json({ translated: text.trim() });
     }
 
-    const text = okText;
-    const obj = extractJson(text);
+    // 2. Prepare Prompts for Split Execution
+    
+    // A. Extraction Prompt (Strict JSON)
+    const extractionInstruction = [
+      "You are a flight analyst assistant.",
+      "Extract flight details from the text into a valid JSON object.",
+      "Fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
+      "Rules:",
+      "- origin/destination: IATA codes (3 uppercase letters).",
+      "- date: yyyy/MM/dd (Keep Jalali/Shamsi if present).",
+      "- time: HH:mm (24h).",
+      "- airline: IATA name only.",
+      "- type options: delay, advance, cancel, number_change, number_time_delay, number_time_advance.",
+      "- If missing, use empty string.",
+      "Respond with ONLY JSON.",
+    ].join("\n");
+
+    const extractionPrompt = `${extractionInstruction}\n\nText to extract:\n${parsed.text}`;
+
+    // B. Translation Prompt (Plain Text)
+    const translationInstruction = [
+      "You are a professional translator.",
+      "Translate the text to Arabic.",
+      "Maintain numbers and dates exactly as they appear.",
+      "Respond ONLY with the translated text.",
+    ].join("\n");
+
+    const translationPrompt = `${translationInstruction}\n\nText:\n${parsed.text}`;
+
+    // 3. Execute Requests
+    // If includeTranslation is true, we run both in parallel. Otherwise, just extraction.
+    const promises: Promise<string>[] = [
+      callGeminiAPI(extractionPrompt, key, parsed.model) // Index 0: Extraction
+    ];
+
+    if (parsed.includeTranslation) {
+      promises.push(callGeminiAPI(translationPrompt, key, parsed.model)); // Index 1: Translation
+    }
+
+    // Wait for all requests to finish
+    const results = await Promise.all(promises);
+    
+    const extractionRawText = results[0];
+    const translationRawText = parsed.includeTranslation ? results[1] : "";
+
+    // 4. Process Extraction Data
+    const obj = extractJson(extractionRawText);
 
     const airline = String(obj.airline || "").trim();
-    const flightNumber = String(
-      obj.flightNumber || obj.flight_no || obj.flight || "",
-    )
-      .toString()
-      .trim();
-    const dateISO = normalizeDateToISO(
-      String(obj.date || obj.flightDate || ""),
-    );
-    const originRaw = String(obj.origin || obj.from || "")
-      .toString()
-      .trim();
-    const destinationRaw = String(obj.destination || obj.to || "")
-      .toString()
-      .trim();
-
+    const flightNumber = String(obj.flightNumber || obj.flight_no || "").trim();
+    const dateISO = normalizeDateToISO(String(obj.date || obj.flightDate || ""));
+    
     const toIata = (s: string): string => {
       const up = (s || "").trim().toUpperCase();
       if (/^[A-Z]{3}$/.test(up)) return up;
-      const paren = up.match(/\(([A-Z]{3})\)/);
-      if (paren) return paren[1];
       const code = up.match(/\b[A-Z]{3}\b/);
-      if (code) return code[0];
-      return up;
+      return code ? code[0] : up;
     };
 
-    const origin = toIata(originRaw);
-    const destination = toIata(destinationRaw);
+    const origin = toIata(String(obj.origin || ""));
+    const destination = toIata(String(obj.destination || ""));
 
     const rawType = String(obj.type || "").toLowerCase();
-    const newTime = normalizeTime24(
-      obj.newTime || obj.time || obj.new_time || "",
-    );
-    const oldTime = normalizeTime24(obj.oldTime || obj.old_time || "");
-    const newFlightNumber = String(
-      obj.newFlightNumber || obj.new_flight_number || "",
-    ).trim();
-    const newAirline = String(obj.newAirline || obj.new_airline || "").trim();
+    const newTime = normalizeTime24(obj.newTime || obj.new_time);
+    const oldTime = normalizeTime24(obj.oldTime || obj.old_time);
+    const newFlightNumber = String(obj.newFlightNumber || "").trim();
+    const newAirline = String(obj.newAirline || "").trim();
 
-    const inferredType = (() => {
-      const allowed = [
-        "delay",
-        "advance",
-        "cancel",
-        "number_change",
-        "number_time_delay",
-        "number_time_advance",
-      ];
-      if (allowed.includes(rawType)) return rawType;
-      if (newFlightNumber && newTime) return "number_time_delay"; // default to delay if time exists
-      if (newFlightNumber) return "number_change";
-      if (newTime) return "delay";
-      return "";
-    })();
+    // Infer type if missing
+    let inferredType = rawType;
+    const allowed = ["delay", "advance", "cancel", "number_change", "number_time_delay", "number_time_advance"];
+    if (!allowed.includes(inferredType)) {
+        if (newFlightNumber && newTime) inferredType = "number_time_delay";
+        else if (newFlightNumber) inferredType = "number_change";
+        else if (newTime) inferredType = "delay";
+        else inferredType = "";
+    }
 
     const result: any = {
       airline,
@@ -355,12 +256,21 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       newAirline,
     };
 
-    if (hasIncludeTranslation) {
-      result.translated = String(obj.translated || "").trim();
+    // 5. Attach Translation if requested
+    if (parsed.includeTranslation) {
+      result.translated = translationRawText.trim();
     }
 
-    return res.json({ data: result, raw: text });
+    // 6. Return Result
+    return res.json({ 
+        data: result, 
+        // Optional: return raw outputs for debugging if needed
+        raw_extraction: extractionRawText, 
+        raw_translation: translationRawText 
+    });
+
   } catch (err: any) {
+    console.error("Gemini Handler Error:", err);
     return res
       .status(400)
       .json({ error: true, message: err?.message || "Invalid request" });
