@@ -337,7 +337,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       return "";
     })();
 
-    const result = {
+    const result: any = {
       airline,
       flightNumber,
       date: dateISO || "",
@@ -349,6 +349,10 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       newFlightNumber,
       newAirline,
     };
+
+    if (hasIncludeTranslation) {
+      result.translated = String(obj.translated || "").trim();
+    }
 
     return res.json({ data: result, raw: text });
   } catch (err: any) {
