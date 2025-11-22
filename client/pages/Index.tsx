@@ -973,7 +973,11 @@ export default function Index() {
                 {aiLoading ? "جاري التحليل..." : "تحليل التبليغ (AI)"}
               </Button>
 
-              <Button onClick={fetchFromApi} className="w-full sm:w-auto">
+              <Button
+                onClick={fetchFromApi}
+                disabled={!apiFlightNumber.trim() || !apiDepartureFrom.trim()}
+                className="w-full sm:w-auto"
+              >
                 تحميل الرحلات من (API)
               </Button>
             </CardFooter>
