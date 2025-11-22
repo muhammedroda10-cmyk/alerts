@@ -359,7 +359,7 @@ export default function Index() {
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
-        "نود إعلامكم بأنه تم تأخير",
+        "نود إعلامكم بأنه تم تأ��ير",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -394,7 +394,7 @@ export default function Index() {
         "تحية طيبة ...",
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
-        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
+        `رقم الرحلة القديم ( *${flightNumber}* ) عل�� طيران ${airline}`,
         newFlightNumber
           ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}`
           : newAirline
@@ -424,7 +424,7 @@ export default function Index() {
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
-        `الوقت القدي�� : *${oldTime}*`,
+        `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -533,6 +533,60 @@ export default function Index() {
     setSettingsGeminiKey(geminiKey);
     setSettingsGeminiModel(geminiModel);
   }, [showSettingsDialog, apiUrl, apiToken, geminiKey, geminiModel]);
+
+  const saveSettings = () => {
+    setApiUrl(settingsApiUrl);
+    setApiToken(settingsApiToken);
+    setGeminiKey(settingsGeminiKey);
+    setGeminiModel(settingsGeminiModel);
+    setShowSettingsDialog(false);
+    toast({ title: "تم الحفظ", description: "تم حفظ الإعدادات" });
+  };
+
+  const translateToArabic = async () => {
+    if (!aiText.trim()) {
+      toast({ title: "نص مفقود", description: "أدخل نص التبليغ أولًا" });
+      return;
+    }
+    try {
+      setTranslating(true);
+      const res = await fetch("/api/ai/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: aiText,
+          apiKey: geminiKey || undefined,
+          model: geminiModel || undefined,
+          isTranslation: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error)
+        throw new Error(data?.message || "فشل الترجمة");
+      const translated = data.translated || data.data?.translated || "";
+      if (translated) {
+        setTranslatedText(translated);
+        toast({ title: "تم الترجمة", description: "تمت ترجمة النص إلى العربية" });
+      } else {
+        throw new Error("لم يتم الحصول على ترجمة");
+      }
+    } catch (e: any) {
+      toast({
+        title: "خطأ في الترجمة",
+        description: e?.message || "تعذر الاتصال",
+      });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (aiText.trim()) {
+      translateToArabic();
+    } else {
+      setTranslatedText("");
+    }
+  }, [aiText]);
 
   const copy = async (text: string) => {
     try {
@@ -738,7 +792,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرفض ير��ى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -878,7 +932,7 @@ export default function Index() {
                   type="password"
                   value={geminiKey}
                   onChange={(e) => setGeminiKey(e.target.value)}
-                  placeholder="أدخل مفت��ح Gemini (اختياري إن تم ضبطه في الخادم)"
+                  placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)"
                 />
                 <p className="text-xs text-muted-foreground">
                   يُحفظ محليًا في المتصفح فقط.
@@ -1080,7 +1134,7 @@ export default function Index() {
                     id="newFlightNumber"
                     value={newFlightNumber}
                     onChange={(e) => setNewFlightNumber(e.target.value)}
-                    placeholder="أدخل الرقم الجديد إن وُجد"
+                    placeholder="أدخل الرقم الجديد إن وُ��د"
                   />
                 </div>
                 <div>
