@@ -359,7 +359,7 @@ export default function Index() {
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
-        "نود إعلامكم بأنه تم تأ��ير",
+        "نود إعلامكم بأنه تم تأخير",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -394,7 +394,7 @@ export default function Index() {
         "تحية طيبة ...",
         `تم تغيير رقم الرحلة   ${route}  بتاريخ *${dateFmt}*`,
         "",
-        `رقم الرحلة القديم ( *${flightNumber}* ) عل�� طيران ${airline}`,
+        `رقم الرحلة القديم ( *${flightNumber}* ) على طيران ${airline}`,
         newFlightNumber
           ? `رقم الرحلة الجديد ( *${newFlightNumber}* )${newAirline ? ` على طيران ${newAirline}` : ""}`
           : newAirline
@@ -792,7 +792,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرف�� يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -911,8 +911,16 @@ export default function Index() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSettingsDialog(true)}
+                title="الإعدادات"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2">
@@ -926,25 +934,13 @@ export default function Index() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="geminiKey">Gemini API Key</Label>
-                <Input
-                  id="geminiKey"
-                  type="password"
-                  value={geminiKey}
-                  onChange={(e) => setGeminiKey(e.target.value)}
-                  placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)"
-                />
-                <p className="text-xs text-muted-foreground">
-                  يُحفظ محليًا في المتصفح فقط.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="geminiModel">Model</Label>
-                <Input
-                  id="geminiModel"
-                  value={geminiModel}
-                  onChange={(e) => setGeminiModel(e.target.value)}
-                  placeholder="مثال: gemini-2.5-flash"
+                <Label htmlFor="translatedText">ترجمة إلى العربية</Label>
+                <Textarea
+                  id="translatedText"
+                  value={translatedText}
+                  readOnly
+                  className="min-h-[120px] bg-muted"
+                  placeholder={translating ? "جاري الترجمة..." : "الترجمة ستظهر هنا"}
                 />
               </div>
             </CardContent>
@@ -1134,7 +1130,7 @@ export default function Index() {
                     id="newFlightNumber"
                     value={newFlightNumber}
                     onChange={(e) => setNewFlightNumber(e.target.value)}
-                    placeholder="أدخل الرقم الجديد إن وُ��د"
+                    placeholder="أدخل الرقم الجديد إن وُجد"
                   />
                 </div>
                 <div>
