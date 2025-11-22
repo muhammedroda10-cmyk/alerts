@@ -153,6 +153,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       const translationInstruction = [
         "You are a professional translator.",
         "Translate the following text to Arabic. Keep the original formatting.",
+        "Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.",
         "If text is Arabic, return as-is.",
         "Respond ONLY with the translated text.",
       ].join("\n");
@@ -188,6 +189,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const translationInstruction = [
       "You are a professional translator.",
       "Translate the text to Arabic.",
+      Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.",
       "Maintain numbers and dates exactly as they appear.",
       "Respond ONLY with the translated text.",
     ].join("\n");
