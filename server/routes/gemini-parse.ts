@@ -192,32 +192,34 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     const instruction = hasIncludeTranslation
       ? [
-          "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.) and translates to Arabic.",
-          "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline, translated.",
-          "Rules:",
-          "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-          "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
-          "- Use 24-hour HH:mm for times.",
-          "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
-          "- Normalize digits to Western numerals.",
-          "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
-          "- 'translated' field: Translate the entire text to Arabic. If already in Arabic, return as-is. Keep formatting and structure.",
-          "- If something is missing in the text, set it to an empty string.",
-          "Respond with only JSON, no explanations.",
-        ].join("\n")
+        "You are an expert translator and flight analyst.", // تعزيز الدور
+        "Your task is two-fold: 1. Extract flight details. 2. Translate the full text to Arabic.", // فصل المهام بوضوح
+        "Return a single valid JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline, translated.",
+        "Rules:",
+        "- 'translated': THIS IS MANDATORY. Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.", // تشديد قوي هنا
+        "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD). Deduce codes from city names.",
+        "- Use date format yyyy/MM/dd. Do NOT convert Jalali/Shamsi to Gregorian. Return Jalali as-is. Current Shamsi year: 1404.",
+        "- Use 24-hour HH:mm for times.",
+        "- airline: Use IATA Airlines names only (first name only, remove 'airlines'/'air').",
+        "- Normalize digits to Western numerals.",
+        "- type must be: delay, advance, cancel, number_change, number_time_delay, number_time_advance. Default to 'delay' if only time changes.",
+        "- If a field is missing, use empty string.",
+        "Respond with ONLY valid JSON.",
+      ].join("\n")
       : [
-          "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
-          "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
-          "Rules:",
-          "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-          "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
-          "- Use 24-hour HH:mm for times.",
-          "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
-          "- Normalize digits to Western numerals.",
-          "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
-          "- If something is missing in the text, set it to an empty string.",
-          "Respond with only JSON, no explanations.",
-        ].join("\n");
+        // ... (الكود القديم لحالة عدم وجود ترجمة يبقى كما هو)
+        "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
+        "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
+        "Rules:",
+        "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD).",
+        "- Use date format yyyy/MM/dd. Do NOT convert Jalali/Shamsi dates. Current Shamsi year: 1404.",
+        "- Use 24-hour HH:mm for times.",
+        "- airline: Use IATA Airlines names only.",
+        "- Normalize digits to Western numerals.",
+        "- type must be: delay, advance, cancel, number_change, number_time_delay, number_time_advance.",
+        "- If something is missing, set it to an empty string.",
+        "Respond with only JSON, no explanations.",
+      ].join("\n");
 
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
 
