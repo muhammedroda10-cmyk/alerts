@@ -424,7 +424,7 @@ export default function Index() {
           : newAirline
             ? `شركة الطيران الجديدة: ${newAirline}`
             : "",
-        `الوقت القديم : *${oldTime}*`,
+        `الوقت القدي�� : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -527,6 +527,13 @@ export default function Index() {
     if (apiToken) localStorage.setItem(TOKEN_KEY, apiToken);
   }, [apiToken]);
 
+  useEffect(() => {
+    setSettingsApiUrl(apiUrl);
+    setSettingsApiToken(apiToken);
+    setSettingsGeminiKey(geminiKey);
+    setSettingsGeminiModel(geminiModel);
+  }, [showSettingsDialog, apiUrl, apiToken, geminiKey, geminiModel]);
+
   const copy = async (text: string) => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -627,7 +634,7 @@ export default function Index() {
         setApiFlightNumber(num ? num[1] : String(d.flightNumber));
       }
 
-      toast({ title: "تم الاستخراج", description: "ت�� تعبئة الحقول من النص" });
+      toast({ title: "تم الاستخراج", description: "تم تعبئة الحقول من النص" });
     } catch (e: any) {
       toast({
         title: "خطأ في التحليل",
@@ -731,7 +738,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرفض ير��ى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -871,7 +878,7 @@ export default function Index() {
                   type="password"
                   value={geminiKey}
                   onChange={(e) => setGeminiKey(e.target.value)}
-                  placeholder="أدخل مفتاح Gemini (اختياري إن تم ضبطه في الخادم)"
+                  placeholder="أدخل مفت��ح Gemini (اختياري إن تم ضبطه في الخادم)"
                 />
                 <p className="text-xs text-muted-foreground">
                   يُحفظ محليًا في المتصفح فقط.
@@ -1154,7 +1161,7 @@ export default function Index() {
                     value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
                     placeholder={
-                      selectedSupplierFilter || "أدخل السبلاير / الت��قيع"
+                      selectedSupplierFilter || "أدخل السبلاير / التوقيع"
                     }
                   />
                 </div>
@@ -1471,7 +1478,7 @@ export default function Index() {
                 placeholder="أدخل التوكن"
               />
               <p className="text-xs text-muted-foreground">
-                ��يتم حفظه في المتصفح للاستخدام القادم.
+                سيتم حفظه في المتصفح للاستخدام القادم.
               </p>
             </div>
             <DialogFooter>
