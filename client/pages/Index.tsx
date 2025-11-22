@@ -317,8 +317,17 @@ export default function Index() {
   const [geminiKey, setGeminiKey] = useState("");
   const [geminiModel, setGeminiModel] = useState("gemini-1.5-flash-latest");
   const [aiLoading, setAiLoading] = useState(false);
+  const [translatedText, setTranslatedText] = useState("");
+  const [translating, setTranslating] = useState(false);
   const GEMINI_KEY_STORAGE = "gemini_api_key";
   const GEMINI_MODEL_STORAGE = "gemini_model";
+
+  // Settings dialog state
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [settingsApiUrl, setSettingsApiUrl] = useState(apiUrl);
+  const [settingsApiToken, setSettingsApiToken] = useState(apiToken);
+  const [settingsGeminiKey, setSettingsGeminiKey] = useState(geminiKey);
+  const [settingsGeminiModel, setSettingsGeminiModel] = useState(geminiModel);
 
   // Notification/history and editable state
   const [history, setHistory] = useState<NotificationItem[]>([]);
@@ -618,7 +627,7 @@ export default function Index() {
         setApiFlightNumber(num ? num[1] : String(d.flightNumber));
       }
 
-      toast({ title: "تم الاستخراج", description: "تم تعبئة الحقول من النص" });
+      toast({ title: "تم الاستخراج", description: "ت�� تعبئة الحقول من النص" });
     } catch (e: any) {
       toast({
         title: "خطأ في التحليل",
@@ -722,7 +731,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبو�� أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -1073,7 +1082,7 @@ export default function Index() {
                     id="newAirline"
                     value={newAirline}
                     onChange={(e) => setNewAirline(e.target.value)}
-                    placeholder="أدخل شركة الطيران ا��جديدة إن وُجدت"
+                    placeholder="أدخل شركة الطيران الجديدة إن وُجدت"
                   />
                 </div>
               </div>
@@ -1145,7 +1154,7 @@ export default function Index() {
                     value={supplier}
                     onChange={(e) => setSupplier(e.target.value)}
                     placeholder={
-                      selectedSupplierFilter || "أدخل السبلاير / التوقيع"
+                      selectedSupplierFilter || "أدخل السبلاير / الت��قيع"
                     }
                   />
                 </div>
@@ -1462,7 +1471,7 @@ export default function Index() {
                 placeholder="أدخل التوكن"
               />
               <p className="text-xs text-muted-foreground">
-                سيتم حفظه في المتصفح للاستخدام القادم.
+                ��يتم حفظه في المتصفح للاستخدام القادم.
               </p>
             </div>
             <DialogFooter>
