@@ -6,6 +6,7 @@ const RequestSchema = z.object({
   apiKey: z.string().optional(),
   targetLocale: z.string().optional(),
   model: z.string().optional(),
+  isTranslation: z.boolean().optional(),
 });
 
 function normalizeDigits(input: string): string {
