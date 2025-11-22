@@ -974,7 +974,7 @@ export default function Index() {
               </Button>
 
               <Button onClick={fetchFromApi} className="w-full sm:w-auto">
-                تحميل التبليغات من (API)
+                تحميل الرحلات من (API)
               </Button>
             </CardFooter>
           </Card>
