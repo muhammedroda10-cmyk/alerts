@@ -318,7 +318,6 @@ export default function Index() {
   const [geminiModel, setGeminiModel] = useState("gemini-1.5-flash-latest");
   const [aiLoading, setAiLoading] = useState(false);
   const [translatedText, setTranslatedText] = useState("");
-  const [translating, setTranslating] = useState(false);
   const GEMINI_KEY_STORAGE = "gemini_api_key";
   const GEMINI_MODEL_STORAGE = "gemini_model";
 
@@ -364,7 +363,7 @@ export default function Index() {
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
-        `ا��وقت ا��قديم : *${oldTime}*`,
+        `الوقت ا��قديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -650,7 +649,7 @@ export default function Index() {
         setApiFlightNumber(num ? num[1] : String(d.flightNumber));
       }
 
-      toast({ title: "تم الاستخراج", description: "تم تعبئة الحقول من النص" });
+      toast({ title: "تم الاستخراج", description: "تم ��عبئة الحقول من النص" });
     } catch (e: any) {
       toast({
         title: "خطأ في التحليل",
@@ -1097,7 +1096,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="oldTime">الوقت ��لقديم (24 ساعة HH:MM)</Label>
+                  <Label htmlFor="oldTime">الوقت القديم (24 ساعة HH:MM)</Label>
                   <Input
                     id="oldTime"
                     inputMode="numeric"
