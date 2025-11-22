@@ -870,7 +870,7 @@ export default function Index() {
           </p>
         </div>
 
-        <div className=" md:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 gap-6 items-start">
           <Card className="w-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>معالجة البيانات والرحلات</CardTitle>
