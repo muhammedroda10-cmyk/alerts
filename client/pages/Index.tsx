@@ -438,7 +438,7 @@ export default function Index() {
       return [
         "🟩 تبليغ تقديم وتغيير رقم رحلة",
         "تحية طيبة",
-        "نود إعلامكم بأنه تم تقديم وتغيير رقم",
+        "نود إعلام��م بأنه تم تقديم وتغيير رقم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
@@ -792,7 +792,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرف�� يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -934,7 +934,7 @@ export default function Index() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="translatedText">ترجمة إلى العربية</Label>
+                <Label htmlFor="translatedText">ترجمة إلى العربي��</Label>
                 <Textarea
                   id="translatedText"
                   value={translatedText}
@@ -952,28 +952,18 @@ export default function Index() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSettingsDialog(true)}
+                title="الإعدادات"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="apiUrl">الرابط</Label>
-                <Input
-                  id="apiUrl"
-                  value={apiUrl}
-                  onChange={(e) => setApiUrl(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="apiToken">Bearer Token</Label>
-                <Input
-                  id="apiToken"
-                  type="password"
-                  value={apiToken}
-                  onChange={(e) => setApiToken(e.target.value)}
-                  placeholder="أدخل التوكن"
-                />
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="depFrom"> تاريخ الرحلة</Label>
@@ -1525,7 +1515,7 @@ export default function Index() {
                 type="password"
                 value={tokenCandidate}
                 onChange={(e) => setTokenCandidate(e.target.value)}
-                placeholder="أدخل التوكن"
+                placeholder="أدخل ��لتوكن"
               />
               <p className="text-xs text-muted-foreground">
                 سيتم حفظه في المتصفح للاستخدام القادم.
