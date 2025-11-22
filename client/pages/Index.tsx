@@ -970,7 +970,7 @@ export default function Index() {
                 variant="secondary"
                 className="w-full sm:w-auto"
               >
-                {aiLoading ? "جاري التحليل..." : "استخراج من النص (Gemini)"}
+                {aiLoading ? "جاري التحليل..." : "تحليل التبليغ (AI)"}
               </Button>
 
               <Button
