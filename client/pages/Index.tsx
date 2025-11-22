@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeftRight } from "lucide-react";
+import { ArrowLeftRight, Settings } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -722,7 +722,7 @@ export default function Index() {
   }, [trips, flightNumber, origin, destination, airline, date]);
 
   const DEFAULT_SUPPLIER_NOTE =
-    "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
+    "🔸 ملاحظة :\nفي حال القبو�� أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<string, boolean>
@@ -1073,7 +1073,7 @@ export default function Index() {
                     id="newAirline"
                     value={newAirline}
                     onChange={(e) => setNewAirline(e.target.value)}
-                    placeholder="أدخل شركة الطيران الجديدة إن وُجدت"
+                    placeholder="أدخل شركة الطيران ا��جديدة إن وُجدت"
                   />
                 </div>
               </div>
