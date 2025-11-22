@@ -581,12 +581,15 @@ export default function Index() {
   };
 
   useEffect(() => {
-    if (aiText.trim()) {
-      translateToArabic();
-    } else {
-      setTranslatedText("");
-    }
-  }, [aiText]);
+    const timer = setTimeout(() => {
+      if (aiText.trim()) {
+        translateToArabic();
+      } else {
+        setTranslatedText("");
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [aiText, geminiKey, geminiModel]);
 
   const copy = async (text: string) => {
     try {
@@ -1120,7 +1123,7 @@ export default function Index() {
                     id="newFlightNumber"
                     value={newFlightNumber}
                     onChange={(e) => setNewFlightNumber(e.target.value)}
-                    placeholder="أدخل الرقم الجديد إن وُجد"
+                    placeholder="أدخل الرقم الجديد إن وُ��د"
                   />
                 </div>
                 <div>
@@ -1344,7 +1347,7 @@ export default function Index() {
             {filteredNotifications.length === 0 ? (
               <p className="text-muted-foreground">
                 {groupedNotifications.length === 0
-                  ? 'لا توجد نتائج. استخدم "جلب من API" ثم أدخل تفاصيل المطابقة.'
+                  ? 'لا توجد نتائج. استخدم "جلب من API" ��م أدخل تفاصيل المطابقة.'
                   : "لا توجد تبليغات لهذا المورد"}
               </p>
             ) : (
