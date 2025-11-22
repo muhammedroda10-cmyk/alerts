@@ -177,7 +177,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "- origin/destination: IATA codes (3 uppercase letters).",
       "- date: yyyy/MM/dd (Keep Jalali/Shamsi if present).",
       "- time: HH:mm (24h).",
-      "- airline:THIS IS MANDATORY IATA name only.",
+      "- airline:THIS IS MANDATORY to be IATA name only.",
       "- type options: delay, advance, cancel, number_change, number_time_delay, number_time_advance.",
       "- If missing, use empty string.",
       "Respond with ONLY JSON.",
