@@ -901,7 +901,7 @@ export default function Index() {
                   value={translatedText}
                   readOnly
                   className="min-h-[120px] bg-muted"
-                  placeholder={translating ? "جاري الترجمة..." : "الترجمة ستظهر هنا"}
+                  placeholder="الترجمة ستظهر هنا عند الاستخراج"
                 />
               </div>
             </CardContent>
@@ -1535,7 +1535,7 @@ export default function Index() {
                 type="password"
                 value={tokenCandidate}
                 onChange={(e) => setTokenCandidate(e.target.value)}
-                placeholder="أدخل ��لتوكن"
+                placeholder="أدخل ���لتوكن"
               />
               <p className="text-xs text-muted-foreground">
                 سيتم حفظه في المتصفح للاستخدام القادم.
