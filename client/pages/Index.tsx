@@ -364,7 +364,7 @@ export default function Index() {
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
-        `الوقت ا��قديم : *${oldTime}*`,
+        `ا��وقت ا��قديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
         "",
       ].join("\n");
@@ -382,7 +382,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم الرحل�� :${flightNumber}`,
+        `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "",
@@ -543,53 +543,6 @@ export default function Index() {
     toast({ title: "تم الحفظ", description: "تم حفظ الإعدادات" });
   };
 
-  const translateToArabic = async () => {
-    if (!aiText.trim()) {
-      toast({ title: "نص مفقود", description: "أدخل نص التبليغ أولًا" });
-      return;
-    }
-    try {
-      setTranslating(true);
-      const res = await fetch("/api/ai/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: aiText,
-          apiKey: geminiKey || undefined,
-          model: geminiModel || undefined,
-          isTranslation: true,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error)
-        throw new Error(data?.message || "فشل الترجمة");
-      const translated = data.translated || data.data?.translated || "";
-      if (translated) {
-        setTranslatedText(translated);
-        toast({ title: "تم الترجمة", description: "تمت ترجمة النص إلى العربية" });
-      } else {
-        throw new Error("لم يتم الحصول على ترجمة");
-      }
-    } catch (e: any) {
-      toast({
-        title: "خطأ في الترجمة",
-        description: e?.message || "تعذر الاتصال",
-      });
-    } finally {
-      setTranslating(false);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (aiText.trim()) {
-        translateToArabic();
-      } else {
-        setTranslatedText("");
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [aiText, geminiKey, geminiModel]);
 
   const copy = async (text: string) => {
     try {
@@ -1144,7 +1097,7 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="oldTime">الوقت القديم (24 ساعة HH:MM)</Label>
+                  <Label htmlFor="oldTime">الوقت ��لقديم (24 ساعة HH:MM)</Label>
                   <Input
                     id="oldTime"
                     inputMode="numeric"
@@ -1184,7 +1137,7 @@ export default function Index() {
                       <SelectItem value="advance">تقديم</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
                       <SelectItem value="number_change">
-                        تغيير رقم الر��لة
+                        تغيير رقم الرحلة
                       </SelectItem>
                       <SelectItem value="number_time_delay">
                         تغيير رقم ووقت (تأخير)
@@ -1586,7 +1539,7 @@ export default function Index() {
                 placeholder="أدخل ��لتوكن"
               />
               <p className="text-xs text-muted-foreground">
-                سيتم حفظه في ا��متصفح للاستخدام القادم.
+                سيتم حفظه في المتصفح للاستخدام القادم.
               </p>
             </div>
             <DialogFooter>
