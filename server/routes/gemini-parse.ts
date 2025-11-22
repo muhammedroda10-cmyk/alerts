@@ -185,19 +185,36 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       return res.json({ translated: okText.trim() });
     }
 
-    const instruction = [
-      "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
-      "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
-      "Rules:",
-      "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-      "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
-      "- Use 24-hour HH:mm for times.",
-      "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
-      "- Normalize digits to Western numerals.",
-      "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
-      "- If something is missing in the text, set it to an empty string.",
-      "Respond with only JSON, no explanations.",
-    ].join("\n");
+    const hasIncludeTranslation = parsed.includeTranslation === true;
+
+    const instruction = hasIncludeTranslation
+      ? [
+          "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.) and translates to Arabic.",
+          "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline, translated.",
+          "Rules:",
+          "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
+          "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
+          "- Use 24-hour HH:mm for times.",
+          "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
+          "- Normalize digits to Western numerals.",
+          "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
+          "- 'translated' field: Translate the entire text to Arabic. If already in Arabic, return as-is. Keep formatting and structure.",
+          "- If something is missing in the text, set it to an empty string.",
+          "Respond with only JSON, no explanations.",
+        ].join("\n")
+      : [
+          "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
+          "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
+          "Rules:",
+          "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
+          "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
+          "- Use 24-hour HH:mm for times.",
+          "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
+          "- Normalize digits to Western numerals.",
+          "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
+          "- If something is missing in the text, set it to an empty string.",
+          "Respond with only JSON, no explanations.",
+        ].join("\n");
 
     const userPrompt = `Text to extract from:\n\n${parsed.text}`;
 
