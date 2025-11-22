@@ -382,7 +382,7 @@ export default function Index() {
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
         ` على متن طيران :${airline}`,
-        `رقم الرحلة :${flightNumber}`,
+        `رقم الرحل�� :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
         "",
@@ -655,6 +655,7 @@ export default function Index() {
           text: aiText,
           apiKey: geminiKey || undefined,
           model: geminiModel || undefined,
+          includeTranslation: true,
         }),
       });
       const data = await res.json();
@@ -678,6 +679,11 @@ export default function Index() {
         setNewFlightNumber(String(d.newFlightNumber));
       if ((d.newAirline || "").trim()) setNewAirline(String(d.newAirline));
       if ((d.type || "").trim()) setType(String(d.type));
+
+      // Set translation
+      if ((d.translated || "").trim()) {
+        setTranslatedText(String(d.translated));
+      }
 
       // Also fill API proxy fields (dates and flight number)
       if ((d.date || "").trim()) {
@@ -1178,7 +1184,7 @@ export default function Index() {
                       <SelectItem value="advance">تقديم</SelectItem>
                       <SelectItem value="cancel">إلغاء</SelectItem>
                       <SelectItem value="number_change">
-                        تغيير رقم الرحلة
+                        تغيير رقم الر��لة
                       </SelectItem>
                       <SelectItem value="number_time_delay">
                         تغيير رقم ووقت (تأخير)
@@ -1580,7 +1586,7 @@ export default function Index() {
                 placeholder="أدخل ��لتوكن"
               />
               <p className="text-xs text-muted-foreground">
-                سيتم حفظه في المتصفح للاستخدام القادم.
+                سيتم حفظه في ا��متصفح للاستخدام القادم.
               </p>
             </div>
             <DialogFooter>
