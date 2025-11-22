@@ -154,6 +154,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
         "You are a professional translator.",
         "Translate the following text to Arabic. Keep the original formatting.",
         "Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.",
+        "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
         "If text is Arabic, return as-is.",
         "Respond ONLY with the translated text.",
       ].join("\n");
@@ -192,6 +193,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "You are a professional translator.",
       "Translate the text to Arabic.",
       "Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.",
+      "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
       "Maintain numbers and dates exactly as they appear.",
       "Respond ONLY with the translated text.",
     ].join("\n");
