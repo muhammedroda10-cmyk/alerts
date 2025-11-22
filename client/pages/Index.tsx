@@ -870,116 +870,116 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>استخراج تلقائي من نص التبليغ (Gemini)</CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSettingsDialog(true)}
-                title="الإعدادات"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
+        <Card className="w-full">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>معالجة البيانات والرحلات</CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSettingsDialog(true)}
+              title="الإعدادات"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* القسم العلوي: النصوص والترجمة جنباً إلى جنب */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* العمود الأيمن: نص التبليغ */}
               <div className="space-y-2">
-                <Label htmlFor="aiText">نص التبليغ</Label>
+                <Label htmlFor="aiText">نص التبليغ (الأصلي)</Label>
                 <Textarea
                   id="aiText"
                   value={aiText}
                   onChange={(e) => setAiText(e.target.value)}
-                  className="min-h-[120px]"
+                  className="min-h-[150px]"
                   placeholder="ألصق نص التبليغ هنا بأي لغة"
                 />
               </div>
+
+              {/* العمود الأيسر: الترجمة */}
               <div className="space-y-2">
-                <Label htmlFor="translatedText">ترجمة إلى العربي��</Label>
+                <Label htmlFor="translatedText">الترجمة إلى العربية</Label>
                 <Textarea
                   id="translatedText"
                   value={translatedText}
                   readOnly
-                  className="min-h-[120px] bg-muted"
+                  className="min-h-[150px] bg-muted"
                   placeholder="الترجمة ستظهر هنا عند الاستخراج"
                 />
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button onClick={parseWithGemini} disabled={aiLoading}>
-                {aiLoading ? "جاري التحليل..." : "استخراج"}
-              </Button>
-            </CardFooter>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>جلب مباشر من API (Proxy)</CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSettingsDialog(true)}
-                title="الإعدادات"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="depFrom"> تاريخ الرحلة</Label>
-                  <Input
-                    id="depFrom"
-                    type="text"
-                    placeholder="dd/MM/yyyy"
-                    value={convertToDisplayFormat(apiDepartureFrom)}
-                    onChange={(e) =>
-                      setApiDepartureFrom(
-                        convertFromDisplayFormat(e.target.value),
-                      )
-                    }
-                  />
-                </div>
+            <div className="border-t my-4" /> {/* خط فاصل جمالي */}
+
+            {/* القسم السفلي: تفاصيل الرحلة ومدخلات API */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="depFrom">تاريخ الرحلة</Label>
+                <Input
+                  id="depFrom"
+                  type="text"
+                  placeholder="dd/MM/yyyy"
+                  value={convertToDisplayFormat(apiDepartureFrom)}
+                  onChange={(e) =>
+                    setApiDepartureFrom(convertFromDisplayFormat(e.target.value))
+                  }
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="apiFlight">رقم الرحلة</Label>
-                  <Input
-                    id="apiFlight"
-                    value={apiFlightNumber}
-                    onChange={(e) => setApiFlightNumber(e.target.value)}
-                    placeholder={flightNumber}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="apiPnr">PNR</Label>
-                  <Input
-                    id="apiPnr"
-                    value={apiPnr}
-                    onChange={(e) => setApiPnr(e.target.value)}
-                  />
-                </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="apiFlight">رقم الرحلة</Label>
+                <Input
+                  id="apiFlight"
+                  value={apiFlightNumber}
+                  onChange={(e) => setApiFlightNumber(e.target.value)}
+                  placeholder={flightNumber}
+                />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="perPage">Per Page</Label>
-                  <Input
-                    id="perPage"
-                    type="number"
-                    min={1}
-                    max={500}
-                    value={apiPerPage}
-                    onChange={(e) =>
-                      setApiPerPage(Number(e.target.value || 100))
-                    }
-                  />
-                </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="apiPnr">PNR</Label>
+                <Input
+                  id="apiPnr"
+                  value={apiPnr}
+                  onChange={(e) => setApiPnr(e.target.value)}
+                />
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button onClick={fetchFromApi}>جلب من API</Button>
-            </CardFooter>
-          </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="perPage">Per Page</Label>
+                <Input
+                  id="perPage"
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={apiPerPage}
+                  onChange={(e) => setApiPerPage(Number(e.target.value || 100))}
+                />
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col sm:flex-row justify-end gap-3 bg-gray-50/50 p-4 rounded-b-lg">
+            {/* أزرار الإجراءات */}
+            <Button
+              onClick={parseWithGemini}
+              disabled={aiLoading}
+              variant="secondary"
+              className="w-full sm:w-auto"
+            >
+              {aiLoading ? "جاري التحليل..." : "استخراج من النص (Gemini)"}
+            </Button>
+
+            <Button
+              onClick={fetchFromApi}
+              className="w-full sm:w-auto"
+            >
+              جلب مباشر (API)
+            </Button>
+          </CardFooter>
+        </Card>
 
           <Card className="md:col-span-2">
             <CardHeader>
