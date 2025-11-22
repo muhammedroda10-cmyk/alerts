@@ -179,7 +179,10 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       if (!okData) {
         return res
           .status(lastStatus)
-          .json({ error: true, message: lastBody || "Translation request failed" });
+          .json({
+            error: true,
+            message: lastBody || "Translation request failed",
+          });
       }
 
       return res.json({ translated: okText.trim() });

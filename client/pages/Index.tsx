@@ -348,7 +348,6 @@ export default function Index() {
     const dateObj = new Date(date);
     const isDateValid = isValidDate(dateObj);
     const dateFmt = formatDateSafely(date, "dd/MM/yyyy", date);
-    
 
     if (type === "delay") {
       const nextDayNote =
@@ -541,7 +540,6 @@ export default function Index() {
     setShowSettingsDialog(false);
     toast({ title: "تم الحفظ", description: "تم حفظ الإعدادات" });
   };
-
 
   const copy = async (text: string) => {
     try {
@@ -911,9 +909,7 @@ export default function Index() {
                   />
                 </div>
               </div>
-
               <div className="border-t my-4" /> {/* خط فاصل جمالي */}
-
               {/* القسم السفلي: تفاصيل الرحلة ومدخلات API */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
@@ -924,7 +920,9 @@ export default function Index() {
                     placeholder="dd/MM/yyyy"
                     value={convertToDisplayFormat(apiDepartureFrom)}
                     onChange={(e) =>
-                      setApiDepartureFrom(convertFromDisplayFormat(e.target.value))
+                      setApiDepartureFrom(
+                        convertFromDisplayFormat(e.target.value),
+                      )
                     }
                   />
                 </div>
@@ -956,7 +954,9 @@ export default function Index() {
                     min={1}
                     max={500}
                     value={apiPerPage}
-                    onChange={(e) => setApiPerPage(Number(e.target.value || 100))}
+                    onChange={(e) =>
+                      setApiPerPage(Number(e.target.value || 100))
+                    }
                   />
                 </div>
               </div>
@@ -973,10 +973,7 @@ export default function Index() {
                 {aiLoading ? "جاري التحليل..." : "تحليل التبليغ (AI)"}
               </Button>
 
-              <Button
-                onClick={fetchFromApi}
-                className="w-full sm:w-auto"
-              >
+              <Button onClick={fetchFromApi} className="w-full sm:w-auto">
                 تحميل التبليغات من (API)
               </Button>
             </CardFooter>
