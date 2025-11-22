@@ -105,6 +105,85 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
         .status(400)
         .json({ error: true, message: "Gemini API key is required" });
 
+    const isTranslation = parsed.isTranslation === true;
+
+    if (isTranslation) {
+      // Translation mode: translate text to Arabic
+      const translationInstruction = [
+        "You are a professional translator.",
+        "Translate the following text to Arabic. Keep the original formatting and structure.",
+        "If the text is already in Arabic, return it as-is.",
+        "Respond with only the translated text, no explanations or metadata.",
+      ].join("\n");
+
+      const userPrompt = `Text to translate:\n\n${parsed.text}`;
+
+      const msel = (parsed.model || "").trim();
+      const preferred = msel
+        ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`]
+        : [];
+      const models = [
+        ...preferred,
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-latest",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-flash",
+      ];
+
+      const payload = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: translationInstruction + "\n\n" + userPrompt }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0,
+        },
+      } as const;
+
+      let okData: any = null;
+      let okText = "";
+      let lastStatus = 500;
+      let lastBody = "";
+
+      for (const model of models) {
+        for (const ver of ["v1beta", "v1"]) {
+          const url = `https://generativelanguage.googleapis.com/${ver}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+          const r = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (r.ok) {
+            okData = await r.json();
+            okText = okData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+            break;
+          } else {
+            lastStatus = r.status;
+            lastBody = await r.text();
+            if (
+              !(
+                r.status === 404 ||
+                /NOT_FOUND|not found|unsupported/i.test(lastBody)
+              )
+            ) {
+              break;
+            }
+          }
+        }
+        if (okData) break;
+      }
+
+      if (!okData) {
+        return res
+          .status(lastStatus)
+          .json({ error: true, message: lastBody || "Translation request failed" });
+      }
+
+      return res.json({ translated: okText.trim() });
+    }
+
     const instruction = [
       "You are an assistant that extracts flight alert details from any language (Arabic, Persian, English, etc.).",
       "Return a single JSON object with these fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
