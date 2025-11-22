@@ -174,6 +174,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Extract flight details from the text into a valid JSON object.",
       "Fields: airline, flightNumber, date, origin, destination, type, oldTime, newTime, newFlightNumber, newAirline.",
       "Rules:",
+      "- flightNumber: Only number",
       "- origin/destination: IATA codes (3 uppercase letters).",
       "- date: yyyy/MM/dd (Keep Jalali/Shamsi if present).",
       "- time: HH:mm (24h).",
