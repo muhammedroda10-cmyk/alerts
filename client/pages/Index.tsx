@@ -625,6 +625,7 @@ export default function Index() {
     try {
       setAiLoading(true);
       setAiTags([]);
+      setOldTime("");
       const res = await fetch("/api/ai/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
