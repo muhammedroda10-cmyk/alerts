@@ -636,11 +636,9 @@ export default function Index() {
       if ((d.translated || "").trim()) {
         setTranslatedText(String(d.translated));
       }
-
       if (Array.isArray(d.tags)) {
         setAiTags(d.tags);
       }
-
       // Also fill API proxy fields (dates and flight number)
       if ((d.date || "").trim()) {
         const dd = String(d.date).slice(0, 10).replace(/\//g, "-");
