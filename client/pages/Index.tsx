@@ -913,7 +913,13 @@ export default function Index() {
                     id="translatedText"
                     value={translatedText}
                     readOnly
-                    className="min-h-[150px] bg-muted"
+                    onChange={(e) => {
+                      setTranslatedText(e.target.value);
+                      // كود التمدد التلقائي
+                      e.target.style.height = "auto";
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    className="min-h-[150px] bg-muted resize-none overflow-hidden"
                     placeholder="الترجمة ستظهر هنا عند الاستخراج"
                   />
                   {/* عرض الوسوم (Badges) */}
