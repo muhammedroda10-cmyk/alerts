@@ -912,7 +912,6 @@ export default function Index() {
                   <Textarea
                     id="translatedText"
                     value={translatedText}
-                    readOnly
                     onChange={(e) => {
                       setTranslatedText(e.target.value);
                       // كود التمدد التلقائي
