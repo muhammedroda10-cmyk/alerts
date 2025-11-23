@@ -262,6 +262,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       newTime: newTime || "",
       newFlightNumber,
       newAirline,
+      translated,
       tags: [], // Default empty
     };
 
