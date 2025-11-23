@@ -335,6 +335,31 @@ export default function Index() {
   const [singleEdited, setSingleEdited] = useState("");
   const [singleDirty, setSingleDirty] = useState(false);
 
+
+  // 1. تعريف المراجع للعناصر
+  const aiTextRef = React.useRef<HTMLTextAreaElement>(null);
+  const translatedTextRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // 2. دالة مساعدة لضبط الارتفاع
+  const adjustHeight = (element: HTMLTextAreaElement) => {
+    element.style.height = "auto"; // تصغير الارتفاع أولاً
+    element.style.height = `${element.scrollHeight + 2}px`; // تكبيره بناءً على المحتوى (+2 للإطار)
+  };
+
+  // 3. مراقبة تغير نص التبليغ الأصلي
+  useEffect(() => {
+    if (aiTextRef.current) {
+      adjustHeight(aiTextRef.current);
+    }
+  }, [aiText]);
+
+  // 4. مراقبة تغير نص الترجمة
+  useEffect(() => {
+    if (translatedTextRef.current) {
+      adjustHeight(translatedTextRef.current);
+    }
+  }, [translatedText]);
+
   const isNextDay = useMemo(() => {
     if (!oldTime || !newTime) return false;
     return toMinutes(newTime) < toMinutes(oldTime);
@@ -894,14 +919,10 @@ export default function Index() {
                   <Label htmlFor="aiText">نص التبليغ (الأصلي)</Label>
                   <Textarea
                     id="aiText"
+                    ref={aiTextRef} // 👈 ربط المرجع
                     value={aiText}
-                    onChange={(e) => {
-                      setAiText(e.target.value);
-                      // كود التمدد التلقائي
-                      e.target.style.height = "auto";
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                    }}
-                    className="min-h-[150px] resize-none overflow-hidden" // تمت إضافة كلاسات للتحسين
+                    onChange={(e) => setAiText(e.target.value)}
+                    className="min-h-[150px] resize-none overflow-hidden" // إخفاء شريط التمرير
                     placeholder="ألصق نص التبليغ هنا بأي لغة"
                   />
                 </div>
@@ -911,13 +932,10 @@ export default function Index() {
                   <Label htmlFor="translatedText">الترجمة إلى العربية</Label>
                   <Textarea
                     id="translatedText"
+                    ref={translatedTextRef} // 👈 ربط المرجع
                     value={translatedText}
-                    onChange={(e) => {
-                      setTranslatedText(e.target.value);
-                      // كود التمدد التلقائي
-                      e.target.style.height = "auto";
-                      e.target.style.height = `${e.target.scrollHeight}px`;
-                    }}
+                    readOnly
+                    // تمت إزالة onChange لأن الحقل للقراءة فقط، والـ useEffect سيقوم بالمهمة
                     className="min-h-[150px] bg-muted resize-none overflow-hidden"
                     placeholder="الترجمة ستظهر هنا عند الاستخراج"
                   />
