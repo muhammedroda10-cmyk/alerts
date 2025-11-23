@@ -156,7 +156,8 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
         "Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.",
         "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
         "If text is Arabic, return as-is.",
-        "Respond ONLY with the translated text.",
+        "Respond with this JSON format ONLY:",
+        "{ \"translated\": \"YOUR_ARABIC_TRANSLATION\", \"tags\": [\"TAG1\", \"TAG2\"] }"
       ].join("\n");
 
       const text = await callGeminiAPI(
@@ -195,7 +196,8 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. Ensure the string is properly escaped for JSON.",
       "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
       "Maintain numbers and dates exactly as they appear.",
-      "Respond ONLY with the translated text.",
+      "Respond with this JSON format ONLY:",
+      "{ \"translated\": \"YOUR_ARABIC_TRANSLATION\", \"tags\": [\"TAG1\", \"TAG2\"] }"
     ].join("\n");
 
     const translationPrompt = `${translationInstruction}\n\nText:\n${parsed.text}`;
@@ -260,11 +262,14 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       newTime: newTime || "",
       newFlightNumber,
       newAirline,
+      tags: [], // Default empty
     };
 
     // 5. Attach Translation if requested
     if (parsed.includeTranslation) {
-      result.translated = translationRawText.trim();
+      const transObj = extractJson(translationRawText);
+      result.translated = String(transObj.translated || "").trim();
+      result.tags = Array.isArray(transObj.tags) ? transObj.tags : [];
     }
 
     // 6. Return Result
