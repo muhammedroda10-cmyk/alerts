@@ -288,7 +288,7 @@ export default function Index() {
   const [date, setDate] = useState("2025-09-21");
   const [origin, setOrigin] = useState("IKA");
   const [destination, setDestination] = useState("BGW");
-  const [oldTime, setOldTime] = useState("19:30");
+  const [oldTime, setOldTime] = useState("");
   const [newTime, setNewTime] = useState("01:00");
   const [supplier, setSupplier] = useState("فريق FLY4ALL");
   const [type, setType] = useState("delay"); // delay | advance | cancel
