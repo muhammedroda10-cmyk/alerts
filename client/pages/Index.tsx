@@ -895,8 +895,13 @@ export default function Index() {
                   <Textarea
                     id="aiText"
                     value={aiText}
-                    onChange={(e) => setAiText(e.target.value)}
-                    className="min-h-[150px]"
+                    onChange={(e) => {
+                      setAiText(e.target.value);
+                      // كود التمدد التلقائي
+                      e.target.style.height = "auto";
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    className="min-h-[150px] resize-none overflow-hidden" // تمت إضافة كلاسات للتحسين
                     placeholder="ألصق نص التبليغ هنا بأي لغة"
                   />
                 </div>
