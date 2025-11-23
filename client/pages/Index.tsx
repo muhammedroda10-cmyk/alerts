@@ -292,6 +292,7 @@ export default function Index() {
   const [newTime, setNewTime] = useState("01:00");
   const [supplier, setSupplier] = useState("فريق FLY4ALL");
   const [type, setType] = useState("delay"); // delay | advance | cancel
+  const [aiTags, setAiTags] = useState<string[]>([]);
 
   const [rawTrips, setRawTrips] = useState("");
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -598,6 +599,7 @@ export default function Index() {
     }
     try {
       setAiLoading(true);
+      setAiTags([]);
       const res = await fetch("/api/ai/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -633,6 +635,10 @@ export default function Index() {
       // Set translation
       if ((d.translated || "").trim()) {
         setTranslatedText(String(d.translated));
+      }
+
+      if (Array.isArray(d.tags)) {
+        setAiTags(d.tags);
       }
 
       // Also fill API proxy fields (dates and flight number)
@@ -907,6 +913,24 @@ export default function Index() {
                     className="min-h-[150px] bg-muted"
                     placeholder="الترجمة ستظهر هنا عند الاستخراج"
                   />
+                  {/* عرض الوسوم (Badges) */}
+                  {aiTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2 p-3 bg-slate-50 rounded-md border border-dashed">
+                      {aiTags.map((tag, idx) => (
+                        <Badge
+                          key={idx}
+                          variant={
+                            tag.includes("إلغاء") ? "destructive" :
+                              tag.includes("تأخير") ? "default" :
+                                "secondary"
+                          }
+                          className="px-2 py-1 text-xs"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="border-t my-4" /> {/* خط فاصل جمالي */}
