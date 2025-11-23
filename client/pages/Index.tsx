@@ -1325,7 +1325,7 @@ export default function Index() {
                     )}
                   >
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-base">
+                      <CardTitle className="text-base text-xl">
                         {bn.groupName}{" "}
                         <span className="text-xs text-muted-foreground">
                           ({bn.pnrs.length} PNR)
