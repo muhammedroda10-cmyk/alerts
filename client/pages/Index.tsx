@@ -904,7 +904,7 @@ export default function Index() {
                 </div>
 
                 {/* العمود الأيسر: الترجمة */}
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col h-full">
                   <Label htmlFor="translatedText">الترجمة إلى العربية</Label>
                   <Textarea
                     id="translatedText"
