@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Settings, ArrowLeftRight, Copy, Trash2, Search, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Settings, ArrowLeftRight, Copy, Trash2, Search, CheckCircle2, AlertTriangle, RefreshCw, Languages } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -46,10 +48,7 @@ import { toast } from "@/hooks/use-toast";
 import { 
   parseTrips, 
   convertJalaliToGregorian, 
-  convertToDisplayFormat, 
-  convertFromDisplayFormat,
   formatDateSafely,
-  formatDateYMD,
   toMinutes,
   addDays,
   isValidDate,
@@ -77,8 +76,11 @@ export default function Index() {
   const [copiedGroups, setCopiedGroups] = useState<Record<string, boolean>>({});
   const [deliveredGroups, setDeliveredGroups] = useState<Record<string, boolean>>({});
   const [editedBodies, setEditedBodies] = useState<Record<string, string>>({});
+  
+  // Supplier Notes State
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({});
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
+  
   const [selectedSupplierFilter, setSelectedSupplierFilter] = useState<string | null>(null);
   const [singleEdited, setSingleEdited] = useState("");
   const [singleDirty, setSingleDirty] = useState(false);
@@ -104,7 +106,7 @@ export default function Index() {
     mode: "onChange"
   });
 
-  const { watch, setValue, getValues } = form;
+  const { watch, setValue } = form;
   const formValues = watch(); // Real-time values for memoization
 
   // --- Effects ---
@@ -246,20 +248,18 @@ export default function Index() {
     return [basePreview, `رقم الحجز (PNR) : `, "", formValues.supplier || ""].join("\n");
   }, [basePreview, formValues.supplier]);
 
-  // Update manual edit text when preview changes (if not dirty)
   useEffect(() => {
     if (!singleDirty) setSingleEdited(previewSingle);
   }, [previewSingle, singleDirty]);
 
 
-  // --- Logic: Grouping & Matching (Preserved) ---
+  // --- Logic: Grouping & Matching ---
   const matchedByTitle = useMemo(() => {
     const map = new Map<string, { pnr: string; supplier: string; apiAirline?: string; booking_status?: string }[]>();
     const wantDate = normalizeDateForCompare(formValues.date);
     
     for (const t of trips) {
       if (!t.flightNumber) continue;
-      // Strict matching based on current form input
       if (String(t.flightNumber).trim() !== String(formValues.flightNumber).trim()) continue;
       
       if (formValues.origin && formValues.destination) {
@@ -289,6 +289,17 @@ export default function Index() {
     return map;
   }, [trips, formValues]);
 
+  // Extract unique suppliers for the current match for the notes UI
+  const activeSuppliers = useMemo(() => {
+    const suppliers = new Set<string>();
+    for (const list of matchedByTitle.values()) {
+      for (const item of list) {
+        suppliers.add(item.supplier);
+      }
+    }
+    return Array.from(suppliers);
+  }, [matchedByTitle]);
+
   const groupedNotifications = useMemo(() => {
     const items: any[] = [];
     for (const [groupName, pnrsSuppliers] of matchedByTitle.entries()) {
@@ -307,7 +318,6 @@ export default function Index() {
       for (const sup of supplierOrder) {
         const { pnrs: list, apiAirline, booking_status } = bySupplier.get(sup)!;
         
-        // Inject actual airline if available from API data
         const actualAirline = apiAirline || formValues.airline;
         const previewLines = basePreview.split("\n");
         const updatedPreview = previewLines
@@ -315,12 +325,18 @@ export default function Index() {
           .join("\n");
 
         const lines: string[] = [updatedPreview];
+        // Logic: Add note if the checkbox for this supplier is checked
         const note = (supplierNotes[sup] || DEFAULT_SUPPLIER_NOTE).trim();
 
         for (const p of list) lines.push(`*رقم الحجز (PNR) : ${p}*`);
         lines.push("");
-        if (selectedSuppliers[sup] && note) lines.push(note);
-        lines.push("", sup); // Sign with supplier name
+        
+        // Only append note if selected
+        if (selectedSuppliers[sup] && note) {
+          lines.push(note);
+        }
+        
+        lines.push("", sup); // Signature
 
         items.push({
           id: `${groupName}__${sup}`,
@@ -359,7 +375,6 @@ export default function Index() {
       await navigator.clipboard.writeText(text);
       toast({ title: "تم النسخ", description: "النص في الحافظة" });
     } catch {
-      // Fallback
       const ta = document.createElement("textarea");
       ta.value = text;
       document.body.appendChild(ta);
@@ -390,6 +405,8 @@ export default function Index() {
     try {
       setAiLoading(true);
       setAiTags([]);
+      setTranslatedText("");
+      
       const res = await fetch("/api/ai/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -405,7 +422,6 @@ export default function Index() {
       
       const d = data.data || {};
       
-      // Batch updates via RHF setValue
       if (d.airline) setValue("airline", d.airline);
       if (d.flightNumber) {
         const num = String(d.flightNumber).match(/(\d{2,})/);
@@ -447,7 +463,7 @@ export default function Index() {
         url: apiUrl,
         token: apiToken,
         params: {
-          pagination: { page: 1, perpage: 100 }, // Can add perPage to schema if needed
+          pagination: { page: 1, perpage: 100 },
           query: {
             bookingStatus: "all",
             paymentStatus: "default",
@@ -455,7 +471,7 @@ export default function Index() {
             departureFrom: formValues.date,
             departureTo: formValues.date,
             flightNumber: formValues.flightNumber,
-            pnr: "", // Can add pnr filter to schema if needed
+            pnr: "",
           },
           sort: { field: "id", sort: "desc" },
         },
@@ -470,7 +486,8 @@ export default function Index() {
       
       const parsed = parseTrips(JSON.stringify(data));
       setTrips(parsed);
-      // Reset group states
+      
+      // Reset
       setHiddenGroups({});
       setCopiedGroups({});
       setDeliveredGroups({});
@@ -485,9 +502,9 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
+    <div className="min-h-screen bg-slate-50/50 pb-20" dir="rtl">
       {/* Main Header */}
-      <div className="border-b bg-white px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+      <div className="border-b bg-white px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">نظام التبليغات</h1>
           <p className="text-sm text-slate-500">إنشاء تبليغات ذكية ومجمّعة للرحلات</p>
@@ -507,15 +524,15 @@ export default function Index() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">API URL</label>
-                  <Input value={apiUrl} onChange={e => setApiUrl(e.target.value)} />
+                  <Input value={apiUrl} onChange={e => setApiUrl(e.target.value)} dir="ltr" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Bearer Token</label>
-                  <Input type="password" value={apiToken} onChange={e => setApiToken(e.target.value)} />
+                  <Input type="password" value={apiToken} onChange={e => setApiToken(e.target.value)} dir="ltr" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Gemini API Key</label>
-                  <Input type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} />
+                  <Input type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} dir="ltr" />
                 </div>
               </div>
               <DialogFooter>
@@ -545,7 +562,24 @@ export default function Index() {
                 placeholder="ألصق نص التبليغ هنا (فارسي، إنجليزي...)"
                 value={aiText}
                 onChange={e => setAiText(e.target.value)}
+                dir="auto"
               />
+              
+              {/* Translation Display */}
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Languages className="w-3 h-3" />
+                  الترجمة (تلقائية)
+                </Label>
+                <Textarea 
+                  className="min-h-[80px] resize-none text-sm bg-slate-50 text-slate-600" 
+                  placeholder="الترجمة ستظهر هنا..."
+                  value={translatedText}
+                  readOnly
+                  dir="rtl"
+                />
+              </div>
+
               {aiTags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {aiTags.map((t, i) => (
@@ -579,7 +613,7 @@ export default function Index() {
                     <FormField control={form.control} name="origin" render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className="text-xs">من</FormLabel>
-                        <FormControl><Input {...field} className="uppercase" maxLength={3} /></FormControl>
+                        <FormControl><Input {...field} className="uppercase" maxLength={3} dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
                     <Button type="button" variant="ghost" size="icon" className="mb-1" onClick={() => {
@@ -592,7 +626,7 @@ export default function Index() {
                     <FormField control={form.control} name="destination" render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormLabel className="text-xs">إلى</FormLabel>
-                        <FormControl><Input {...field} className="uppercase" maxLength={3} /></FormControl>
+                        <FormControl><Input {...field} className="uppercase" maxLength={3} dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
                   </div>
@@ -602,14 +636,14 @@ export default function Index() {
                     <FormField control={form.control} name="date" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs">التاريخ (ميلادي)</FormLabel>
-                        <FormControl><Input type="date" {...field} /></FormControl>
+                        <FormControl><Input type="date" {...field} dir="ltr" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="flightNumber" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs">رقم الرحلة</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
+                        <FormControl><Input {...field} dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
                   </div>
@@ -617,7 +651,7 @@ export default function Index() {
                   <FormField control={form.control} name="airline" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs">شركة الطيران</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><Input {...field} dir="auto" /></FormControl>
                     </FormItem>
                   )} />
 
@@ -625,13 +659,13 @@ export default function Index() {
                     <FormField control={form.control} name="oldTime" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs">الوقت القديم</FormLabel>
-                        <FormControl><Input {...field} placeholder="HH:MM" /></FormControl>
+                        <FormControl><Input {...field} placeholder="HH:MM" dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="newTime" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-xs">الوقت الجديد</FormLabel>
-                        <FormControl><Input {...field} placeholder="HH:MM" /></FormControl>
+                        <FormControl><Input {...field} placeholder="HH:MM" dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
                   </div>
@@ -641,11 +675,11 @@ export default function Index() {
                       <FormLabel>نوع التبليغ</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="text-right" dir="rtl">
                             <SelectValue placeholder="اختر النوع" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent dir="rtl">
                           <SelectItem value="delay">تأخير (Delay)</SelectItem>
                           <SelectItem value="advance">تقديم (Advance)</SelectItem>
                           <SelectItem value="cancel">إلغاء (Cancel)</SelectItem>
@@ -663,13 +697,13 @@ export default function Index() {
                         <FormField control={form.control} name="newFlightNumber" render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs">رقم الرحلة الجديد</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
+                            <FormControl><Input {...field} dir="ltr" /></FormControl>
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="newAirline" render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-xs">الطيران الجديد</FormLabel>
-                            <FormControl><Input {...field} /></FormControl>
+                            <FormControl><Input {...field} dir="auto" /></FormControl>
                           </FormItem>
                         )} />
                      </div>
@@ -678,7 +712,7 @@ export default function Index() {
                   <FormField control={form.control} name="supplier" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs">التوقيع</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><Input {...field} dir="auto" /></FormControl>
                     </FormItem>
                   )} />
                 </form>
@@ -693,7 +727,7 @@ export default function Index() {
                >
                  {isFetchingApi ? "جاري البحث..." : "بحث ومطابقة الرحلات (API)"}
                </Button>
-               <div className="text-xs text-muted-foreground text-center">
+               <div className="text-xs text-muted-foreground text-center" dir="rtl">
                  سيقوم بالبحث عن {formValues.flightNumber} بتاريخ {formValues.date}
                </div>
             </CardFooter>
@@ -702,7 +736,7 @@ export default function Index() {
 
         {/* RIGHT COLUMN: Results & Preview */}
         <div className="xl:col-span-8 space-y-6">
-          <Tabs defaultValue="grouped" className="w-full">
+          <Tabs defaultValue="grouped" className="w-full" dir="rtl">
             <TabsList className="w-full justify-start h-auto p-1 bg-slate-100">
               <TabsTrigger value="grouped" className="flex-1 py-2">التبليغات المجمعة ({filteredNotifications.length})</TabsTrigger>
               <TabsTrigger value="single" className="flex-1 py-2">تبليغ مفرد (عام)</TabsTrigger>
@@ -711,7 +745,40 @@ export default function Index() {
 
             {/* GROUPED NOTIFICATIONS */}
             <TabsContent value="grouped" className="space-y-4 mt-4">
-              {/* Filters */}
+              
+              {/* 1. SUPPLIER NOTES SECTION */}
+              {activeSuppliers.length > 0 && (
+                <Card className="border-dashed border-slate-300 bg-slate-50/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-bold text-slate-700">إضافة ملاحظات للموردين</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {activeSuppliers.map((sup) => (
+                      <div key={sup} className="flex flex-col gap-2 p-3 bg-white border rounded-lg shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            id={`sup-${sup}`} 
+                            checked={!!selectedSuppliers[sup]}
+                            onCheckedChange={(checked) => setSelectedSuppliers(prev => ({ ...prev, [sup]: !!checked }))}
+                          />
+                          <Label htmlFor={`sup-${sup}`} className="font-semibold cursor-pointer">{sup}</Label>
+                        </div>
+                        {selectedSuppliers[sup] && (
+                          <Textarea 
+                            placeholder="اكتب ملاحظة لهذا المورد (ستضاف للتبليغ)..."
+                            value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
+                            onChange={e => setSupplierNotes(prev => ({ ...prev, [sup]: e.target.value }))}
+                            className="text-xs min-h-[60px]"
+                            dir="rtl"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 2. FILTERS */}
               <div className="flex flex-wrap gap-2 pb-2">
                 <Button 
                   variant={selectedSupplierFilter === null ? "default" : "outline"}
@@ -734,7 +801,7 @@ export default function Index() {
                 ))}
               </div>
 
-              {/* Cards Grid */}
+              {/* 3. NOTIFICATION CARDS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredNotifications.map((bn) => (
                   <Card 
@@ -765,9 +832,10 @@ export default function Index() {
                     </CardHeader>
                     <CardContent className="pb-2">
                       <Textarea 
-                        className="min-h-[180px] text-xs font-mono bg-white"
+                        className="min-h-[180px] text-xs font-mono bg-white text-right"
                         value={editedBodies[bn.id] ?? bn.body}
                         onChange={e => setEditedBodies(prev => ({ ...prev, [bn.id]: e.target.value }))}
+                        dir="rtl"
                       />
                     </CardContent>
                     <CardFooter className="pt-2 flex justify-between gap-2">
@@ -781,6 +849,8 @@ export default function Index() {
                           {hiddenGroups[bn.id] ? <Search className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
                         </Button>
                       </div>
+                      
+                      {/* RESTORED BUTTON LOGIC */}
                       <div className="flex gap-2">
                         <Button 
                           size="sm" 
@@ -793,20 +863,37 @@ export default function Index() {
                         >
                           <Copy className="w-3 h-3 mr-1" /> نسخ
                         </Button>
-                        <Button 
-                          size="sm"
-                          variant={deliveredGroups[bn.id] ? "default" : "outline"}
-                          className={cn(deliveredGroups[bn.id] && "bg-green-600 hover:bg-green-700")}
-                          onClick={() => {
-                            if (!deliveredGroups[bn.id]) {
+
+                        {deliveredGroups[bn.id] ? (
+                          <Button 
+                            size="sm" 
+                            disabled 
+                            className="bg-green-600 text-white hover:bg-green-600 opacity-100"
+                          >
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> تم
+                          </Button>
+                        ) : copiedGroups[bn.id] ? (
+                          <Button 
+                            size="sm"
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                            onClick={() => {
                               saveToHistory(editedBodies[bn.id] ?? bn.body, `${bn.groupName} | ${bn.supplier}`);
                               setDeliveredGroups(prev => ({ ...prev, [bn.id]: true }));
-                            }
-                          }}
-                        >
-                          {deliveredGroups[bn.id] ? <CheckCircle2 className="w-3 h-3 mr-1" /> : null}
-                          {deliveredGroups[bn.id] ? "تم" : "حفظ"}
-                        </Button>
+                            }}
+                          >
+                            تم التبليغ
+                          </Button>
+                        ) : (
+                          <Button 
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              saveToHistory(editedBodies[bn.id] ?? bn.body, `${bn.groupName} | ${bn.supplier}`);
+                            }}
+                          >
+                            حفظ
+                          </Button>
+                        )}
                       </div>
                     </CardFooter>
                   </Card>
@@ -829,12 +916,13 @@ export default function Index() {
                 </CardHeader>
                 <CardContent>
                   <Textarea 
-                    className="min-h-[300px] font-mono"
+                    className="min-h-[300px] font-mono text-right"
                     value={singleEdited}
                     onChange={e => {
                       setSingleEdited(e.target.value);
                       setSingleDirty(true);
                     }}
+                    dir="rtl"
                   />
                 </CardContent>
                 <CardFooter className="justify-end gap-2">
@@ -855,7 +943,7 @@ export default function Index() {
                         <CardDescription className="text-[10px]">{formatDateSafely(h.createdAt, "dd/MM/yyyy HH:mm")}</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <pre className="text-xs whitespace-pre-wrap text-slate-600">{h.message}</pre>
+                        <pre className="text-xs whitespace-pre-wrap text-slate-600 text-right font-sans" dir="rtl">{h.message}</pre>
                       </CardContent>
                       <CardFooter className="justify-end pt-0">
                         <Button variant="ghost" size="sm" className="text-red-500 h-6" onClick={() => setHistory(prev => prev.filter(x => x.id !== h.id))}>حذف</Button>
