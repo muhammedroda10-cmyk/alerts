@@ -175,8 +175,8 @@ const FlightFormFields = ({ form }: { form: UseFormReturn<FlightFormValues> }) =
             <FormItem>
               <FormLabel>التاريخ (YYYY-MM-DD)</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
+                <Input 
+                  {...field} 
                   className="ltr font-mono text-center"
                   type="date" // Using native date picker for better UX
                 />
@@ -331,7 +331,7 @@ export default function Index() {
   const [translatedText, setTranslatedText] = useState("");
   const [aiTags, setAiTags] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
-
+  
   const [trips, setTrips] = useState<Trip[]>([]);
   const [history, setHistory] = useState<NotificationItem[]>([]);
   const [showSettings, setShowSettings] = useState(false);
@@ -339,7 +339,7 @@ export default function Index() {
 
   // Hooks
   const { settings, updateSettings, isLoaded } = useAppSettings();
-
+  
   // Form
   const form = useForm<FlightFormValues>({
     resolver: zodResolver(flightFormSchema),
@@ -474,7 +474,7 @@ export default function Index() {
       if (!res.ok) throw new Error(json.message || "فشل التحليل");
 
       const data = json.data;
-
+      
       // Batch updates to form
       if (data.airline) setValue("airline", data.airline);
       if (data.flightNumber) setValue("flightNumber", String(data.flightNumber));
@@ -506,6 +506,7 @@ export default function Index() {
     }
     setApiLoading(true);
     try {
+      // console.log("Fetching with:", { date: formValues.date, flightNumber: formValues.flightNumber });
       const payload = {
         url: settings.apiUrl,
         token: settings.apiToken,
@@ -520,33 +521,64 @@ export default function Index() {
           sort: { field: "id", sort: "desc" },
         },
       };
-
+      
       const res = await fetch("/api/booking/flight", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-
+      
       if (!res.ok) throw new Error(data.message || "فشل جلب الرحلات");
+      
+      // --- Enhanced Response Parsing ---
+      // We handle multiple response shapes to be more robust.
+      let rawList = [];
+      if (Array.isArray(data)) {
+        rawList = data;
+      } else if (data && Array.isArray(data.data)) {
+        rawList = data.data;
+      } else if (data && data.data && Array.isArray(data.data.data)) {
+        // Some APIs wrap twice
+        rawList = data.data.data;
+      }
 
-      // Simple Parse Logic (kept simple for this refactor, assuming strict structure)
-      const rawList = data.data || [];
-      const parsedTrips: Trip[] = rawList.map((r: any) => ({
-        buyer: r.buyer || r.customer || r.userSearchTitle || "عميل",
-        title: r.userSearchTitle || "",
-        pnr: r.pnr || r.PNR || "",
-        flightNumber: r.flightNumber || r.flight_no || "",
-        date: r.date || r.flightDate,
-        origin: r.origin || r.from,
-        destination: r.destination || r.to,
-        airline: r.airline || r.flight_airline,
-        supplier: r.supplier,
-        booking_status: r.booking_status || r.bookingStatus,
-      })).filter((t: Trip) => t.pnr && t.flightNumber); // Basic filtering
+      console.log("Raw API Data:", rawList); // For debugging
+
+      const parsedTrips: Trip[] = rawList.map((r: any) => {
+        // Fallback for buyer name if missing
+        const buyerName = r.buyer || r.customer || r.userSearchTitle || "عميل غير محدد";
+        
+        // Normalize PNR
+        const pnr = (r.pnr || r.PNR || r.booking || "").trim();
+
+        // Normalize Flight Number
+        const flightNo = (r.flightNumber || r.flight_no || r.flight || "").trim();
+
+        return {
+          buyer: buyerName,
+          title: r.userSearchTitle || "",
+          pnr: pnr,
+          flightNumber: flightNo,
+          date: r.date || r.flightDate,
+          origin: r.origin || r.from,
+          destination: r.destination || r.to,
+          airline: r.airline || r.flight_airline,
+          supplier: r.supplier,
+          booking_status: r.booking_status || r.bookingStatus,
+        };
+      }).filter((t: Trip) => {
+        // Relaxed filtering: Accept even if flight number is missing, as long as we have a PNR
+        // This helps when API returns slightly different fields
+        return t.pnr && t.pnr.length > 0;
+      });
 
       setTrips(parsedTrips);
-      toast({ title: "تم الجلب", description: `تم العثور على ${parsedTrips.length} رحلة` });
+      if (parsedTrips.length === 0) {
+        toast({ variant: "warning", title: "تنبيه", description: "لم يتم العثور على رحلات مطابقة. تأكد من التاريخ ورقم الرحلة في API." });
+      } else {
+        toast({ title: "تم الجلب", description: `تم العثور على ${parsedTrips.length} رحلة` });
+      }
     } catch (e: any) {
       toast({ variant: "destructive", title: "فشل", description: e.message });
     } finally {
@@ -577,7 +609,7 @@ export default function Index() {
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-slate-50 to-slate-100 p-4 md:p-8 font-sans" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-8">
-
+        
         {/* Header Area */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -595,7 +627,7 @@ export default function Index() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column: AI & Form */}
           <div className="lg:col-span-7 space-y-6">
-
+            
             {/* 1. AI Parser Card */}
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="pb-3">
@@ -606,7 +638,7 @@ export default function Index() {
                 <CardDescription>ألصق نص التبليغ ليقوم النظام باستخراج البيانات تلقائياً</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
+                <Textarea 
                   placeholder="مثال: Flight 6568 from IKA to BGW on 2025-09-21 has been delayed..."
                   className="min-h-[120px] resize-none text-sm"
                   value={aiText}
@@ -625,9 +657,9 @@ export default function Index() {
                 )}
               </CardContent>
               <CardFooter className="bg-slate-50/50 border-t p-3 flex justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
                   onClick={() => { setAiText(""); setTranslatedText(""); setAiTags([]); }}
                   className="text-slate-500 hover:text-red-600"
                 >
@@ -663,7 +695,7 @@ export default function Index() {
 
           {/* Right Column: Preview & History */}
           <div className="lg:col-span-5 space-y-6">
-
+            
             {/* 3. Live Preview Card */}
             <Card className="border-slate-200 shadow-md bg-amber-50/30 border-amber-100 sticky top-6">
               <CardHeader className="pb-2">
@@ -718,9 +750,9 @@ export default function Index() {
                     <div key={h.id} className="bg-white p-3 rounded border text-sm shadow-sm group relative hover:shadow-md transition-all">
                       <p className="font-semibold truncate mb-1 text-slate-800">{h.summary}</p>
                       <p className="text-xs text-slate-400">{format(new Date(h.createdAt), "HH:mm dd/MM")}</p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
                         className="absolute left-2 top-2 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => handleCopy(h.message)}
                       >
@@ -737,8 +769,8 @@ export default function Index() {
       </div>
 
       {/* Settings Dialog */}
-      <SettingsDialog
-        open={showSettings}
+      <SettingsDialog 
+        open={showSettings} 
         onOpenChange={setShowSettings}
         currentSettings={settings}
         onSave={updateSettings}
