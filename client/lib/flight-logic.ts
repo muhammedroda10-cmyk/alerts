@@ -14,6 +14,7 @@ export interface Trip {
   airline?: string;
   supplier?: string;
   booking_status?: string;
+  time?: string;
 }
 
 export interface NotificationItem {
@@ -112,6 +113,39 @@ export function containsKeyword(text?: string, keyword?: string): boolean {
   return cleanText.includes(cleanKeyword);
 }
 
+export type MatchResult = "EXACT" | "FLIGHT_NO_MISMATCH" | "DATE_MISMATCH" | "NONE";
+
+export function checkMatch(
+  trip: Trip,
+  criteria: { flightNumber?: string; date?: string; origin?: string; destination?: string }
+): MatchResult {
+  if (!trip.flightNumber) return "NONE";
+
+  const flightMatch = String(trip.flightNumber).trim() === String(criteria.flightNumber).trim();
+
+  // Date match logic
+  let dateMatch = false;
+  if (criteria.date && trip.date) {
+    const wantDate = normalizeDateForCompare(criteria.date);
+    const legDate = normalizeDateForCompare(trip.date);
+    dateMatch = wantDate === legDate;
+  } else {
+    dateMatch = true; // Ignore date if not provided in criteria or trip
+  }
+
+  // Route match logic (optional strictness)
+  let routeMatch = true;
+  if (criteria.origin && criteria.destination && trip.origin && trip.destination) {
+    routeMatch = equalCI(trip.origin, criteria.origin) && equalCI(trip.destination, criteria.destination);
+  }
+
+  if (flightMatch && dateMatch && routeMatch) return "EXACT";
+  if (flightMatch && !dateMatch) return "DATE_MISMATCH";
+  if (!flightMatch && dateMatch && routeMatch) return "FLIGHT_NO_MISMATCH";
+
+  return "NONE";
+}
+
 // --- Parser ---
 export function parseTrips(raw: string): Trip[] {
   const text = raw.trim();
@@ -122,7 +156,7 @@ export function parseTrips(raw: string): Trip[] {
     const m = String(s).match(/(\d{2,})/);
     return m ? m[1] : String(s).trim();
   };
-  
+
   const normalizeDate = (d: string | undefined) => {
     if (!d) return undefined as unknown as string;
     const m = String(d).match(/(\d{4}[\/-]\d{2}[\/-]\d{2})/);
@@ -143,17 +177,17 @@ export function parseTrips(raw: string): Trip[] {
       for (const r of arr) {
         const status = String(r.booking_status ?? r.bookingStatus ?? "").toUpperCase();
         if (status === "FAILED") continue;
-        
+
         const title = String(
           r.userSearchTitle ??
-            r.lp_reference ??
-            (r.usersName && r.usersName[0]) ??
-            r.buyer ??
-            r.customer ??
-            r.client ??
-            "",
+          r.lp_reference ??
+          (r.usersName && r.usersName[0]) ??
+          r.buyer ??
+          r.customer ??
+          r.client ??
+          "",
         ).trim();
-        
+
         const buyer = String(r.buyer ?? r.customer ?? r.client ?? title).trim();
         const pnr = String(r.pnr ?? r.PNR ?? r.booking ?? "").trim();
         const supplier = r.supplier;
@@ -163,7 +197,7 @@ export function parseTrips(raw: string): Trip[] {
           const tripType = String(r.tripType ?? r.serviceDetails?.tripType ?? "").toLowerCase();
           const isOpenReturn = tripType === "openreturn";
           const legsToUse = isOpenReturn ? [legs[0]].filter(Boolean) : legs;
-          
+
           for (const leg of legsToUse) {
             const t: Trip = {
               buyer,
@@ -176,6 +210,7 @@ export function parseTrips(raw: string): Trip[] {
               airline: leg.airline ?? r.flight_airline,
               supplier,
               booking_status: status || undefined,
+              time: leg.departureTime || leg.time,
             };
             if (t.buyer && t.pnr && t.flightNumber) out.push(t);
           }
@@ -192,6 +227,7 @@ export function parseTrips(raw: string): Trip[] {
             airline: r.airline ?? r.flight_airline,
             supplier,
             booking_status: status || undefined,
+            time: r.departureTime || r.time,
           };
           if (t.buyer && t.pnr && t.flightNumber) out.push(t);
         }
@@ -205,22 +241,22 @@ export function parseTrips(raw: string): Trip[] {
   // CSV Parsing
   const lines = text.split(/\r?\n/).filter(Boolean);
   if (lines.length === 0) return [];
-  
+
   const headers = lines[0].split(",").map((h) => h.trim());
   const get = (row: Record<string, string>, ...keys: string[]) => {
     for (const k of keys) if (row[k] != null) return row[k];
     return "";
   };
-  
+
   const out: Trip[] = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = lines[i].split(",");
     const row: Record<string, string> = {};
     headers.forEach((h, idx) => (row[h] = (cols[idx] ?? "").trim()));
-    
+
     const status = (row["booking_status"] || row["bookingStatus"] || "").toUpperCase();
     if (status === "CANCELED" || status === "CANCELLED") continue;
-    
+
     const title = get(row, "userSearchTitle", "lp_reference", "buyer", "customer", "client");
     const trip: Trip = {
       buyer: get(row, "buyer", "customer", "client") || title,
@@ -233,6 +269,7 @@ export function parseTrips(raw: string): Trip[] {
       airline: get(row, "airline"),
       supplier: get(row, "supplier"),
       booking_status: status || undefined,
+      time: get(row, "time", "departureTime"),
     };
     if (trip.buyer && trip.pnr && trip.flightNumber) out.push(trip);
   }

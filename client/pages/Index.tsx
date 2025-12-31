@@ -29,14 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,9 +37,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
 // Import extracted logic and schemas
-import { 
-  parseTrips, 
-  convertJalaliToGregorian, 
+import {
+  parseTrips,
+  convertJalaliToGregorian,
   formatDateSafely,
   toMinutes,
   addDays,
@@ -55,33 +47,35 @@ import {
   equalCI,
   containsKeyword,
   normalizeDateForCompare,
+  checkMatch,
   Trip,
   NotificationItem
 } from "@/lib/flight-logic";
 import { flightFormSchema, defaultFlightValues, FlightFormData } from "@/lib/schemas";
+import { SettingsDialog } from "@/components/SettingsDialog";
+import { useAppSettings } from "@/hooks/use-app-settings";
 
 // --- Constants ---
-const TOKEN_KEY = "booking_api_token";
-const GEMINI_KEY_STORAGE = "gemini_api_key";
-const GEMINI_MODEL_STORAGE = "gemini_model";
 const DEFAULT_SUPPLIER_NOTE = "🔸 ملاحظة :\nفي حال القبول أو الرفض يرجى إبلاغنا حتى الساعة 22:22\nونود التنويه أننا غير مسؤولين عن حالة الحجز بعد هذا الوقت في حال عدم وصول تأكيد من قبلكم";
 
 export default function Index() {
   // --- Global State (Persisted/Complex) ---
   const [history, setHistory] = useState<NotificationItem[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
-  
+
   // UI State
   const [hiddenGroups, setHiddenGroups] = useState<Record<string, boolean>>({});
   const [copiedGroups, setCopiedGroups] = useState<Record<string, boolean>>({});
   const [deliveredGroups, setDeliveredGroups] = useState<Record<string, boolean>>({});
   const [editedBodies, setEditedBodies] = useState<Record<string, string>>({});
-  
+
   // Supplier Notes State
   const [supplierNotes, setSupplierNotes] = useState<Record<string, string>>({});
   const [selectedSuppliers, setSelectedSuppliers] = useState<Record<string, boolean>>({});
-  
+
   const [selectedSupplierFilter, setSelectedSupplierFilter] = useState<string | null>(null);
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState<string | null>(null);
+  const [showMismatches, setShowMismatches] = useState(false);
   const [singleEdited, setSingleEdited] = useState("");
   const [singleDirty, setSingleDirty] = useState(false);
 
@@ -94,10 +88,7 @@ export default function Index() {
 
   // Settings State
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [apiToken, setApiToken] = useState("");
-  const [geminiKey, setGeminiKey] = useState("");
-  const [geminiModel, setGeminiModel] = useState("gemini-1.5-flash-latest");
-  const [apiUrl, setApiUrl] = useState("https://accounts.fly4all.com/api/booking/flight");
+  const { settings, updateSettings } = useAppSettings();
 
   // --- Form Management (Zod + React Hook Form) ---
   const form = useForm<FlightFormData>({
@@ -115,22 +106,10 @@ export default function Index() {
     if (savedHist) setHistory(JSON.parse(savedHist));
     const savedTrips = localStorage.getItem("alerts-trips");
     if (savedTrips) setTrips(JSON.parse(savedTrips));
-    
-    const savedToken = localStorage.getItem(TOKEN_KEY);
-    if (savedToken) setApiToken(savedToken);
-    
-    const savedGemini = localStorage.getItem(GEMINI_KEY_STORAGE);
-    if (savedGemini) setGeminiKey(savedGemini);
-    
-    const savedModel = localStorage.getItem(GEMINI_MODEL_STORAGE);
-    if (savedModel) setGeminiModel(savedModel);
   }, []);
 
   useEffect(() => { localStorage.setItem("alerts-trips", JSON.stringify(trips)); }, [trips]);
   useEffect(() => { localStorage.setItem("alerts-history", JSON.stringify(history)); }, [history]);
-  useEffect(() => { if (apiToken) localStorage.setItem(TOKEN_KEY, apiToken); }, [apiToken]);
-  useEffect(() => { if (geminiKey) localStorage.setItem(GEMINI_KEY_STORAGE, geminiKey); }, [geminiKey]);
-  useEffect(() => { if (geminiModel) localStorage.setItem(GEMINI_MODEL_STORAGE, geminiModel); }, [geminiModel]);
 
   // --- Logic: Alert Generation (Preserved) ---
   const isNextDay = useMemo(() => {
@@ -152,15 +131,15 @@ export default function Index() {
 
     if (type === "delay") {
       const nextDayNote = isNextDay && isDateValid
-          ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split("T")[0], "dd/MM/yyyy")})`
-          : "";
+        ? ` (اليوم التالي ${formatDateSafely(addDays(date, 1).toISOString().split("T")[0], "dd/MM/yyyy")})`
+        : "";
       return [
         "🟨 تبليغ تأخير رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تأخير",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
-        ` على متن طيران :${airline}`,
+        `على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${nextDayNote}`,
@@ -170,15 +149,15 @@ export default function Index() {
 
     if (type === "advance") {
       const prevDayNote = isPrevDay && isDateValid
-          ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split("T")[0], "dd/MM/yyyy")})`
-          : "";
+        ? ` (اليوم السابق ${formatDateSafely(addDays(date, -1).toISOString().split("T")[0], "dd/MM/yyyy")})`
+        : "";
       return [
         "🟩 تبليغ تقديم رحلة",
         "تحية طيبة",
         "نود إعلامكم بأنه تم تقديم",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
-        ` على متن طيران :${airline}`,
+        `على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         `الوقت القديم : *${oldTime}*`,
         `الوقت الجديد : *${newTime}*${prevDayNote}`,
@@ -208,14 +187,14 @@ export default function Index() {
       const note = isDelay && isNextDay ? ` (اليوم التالي)` : (!isDelay && isPrevDay ? ` (اليوم السابق)` : "");
       const icon = isDelay ? "🟨" : "🟩";
       const action = isDelay ? "تأخير" : "تقديم";
-      
+
       return [
         `${icon} تبليغ ${action} وتغيير رقم رحلة`,
         "تحية طيبة",
         `نود إعلامكم بأنه تم ${action} وتغيير رقم`,
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
-        ` على متن طيران :${airline}`,
+        `على متن طيران :${airline}`,
         `*رقم الرحلة القديم: ${flightNumber}*`,
         newFlightNumber
           ? `*رقم الرحلة الجديد : ${newFlightNumber}* ${newAirline ? ` على طيران ${newAirline}` : ""}`
@@ -235,7 +214,7 @@ export default function Index() {
         "نود إعلامكم بأنه تم الغاء",
         `الرحلة : ${route}`,
         `بتاريخ : *${dateFmt}*`,
-        ` على متن طيران :${airline}`,
+        `على متن طيران :${airline}`,
         `رقم الرحلة :${flightNumber}`,
         "",
       ].join("\n");
@@ -252,36 +231,58 @@ export default function Index() {
     if (!singleDirty) setSingleEdited(previewSingle);
   }, [previewSingle, singleDirty]);
 
-
   // --- Logic: Grouping & Matching ---
   const matchedByTitle = useMemo(() => {
-    const map = new Map<string, { pnr: string; supplier: string; apiAirline?: string; booking_status?: string }[]>();
-    const wantDate = normalizeDateForCompare(formValues.date);
-    
+    const map = new Map<string, { pnr: string; title: string; supplier: string; apiAirline?: string; booking_status?: string; warning?: string; mismatchReason?: string; originalValue?: string; time?: string }[]>();
+
     for (const t of trips) {
-      if (!t.flightNumber) continue;
-      if (String(t.flightNumber).trim() !== String(formValues.flightNumber).trim()) continue;
-      
-      if (formValues.origin && formValues.destination) {
-        if (!equalCI(t.origin, formValues.origin) || !equalCI(t.destination, formValues.destination)) continue;
+      const matchType = checkMatch(t, {
+        flightNumber: formValues.flightNumber,
+        date: formValues.date,
+        origin: formValues.origin,
+        destination: formValues.destination
+      });
+
+      if (matchType === "NONE") continue;
+
+      let warning = undefined;
+      let mismatchReason = undefined;
+      let originalValue = undefined;
+
+      if (matchType === "DATE_MISMATCH") {
+        warning = "⚠️ اختلاف تاريخ";
+        mismatchReason = "اختلاف تاريخ";
+        originalValue = t.date ? formatDateSafely(t.date, "dd/MM/yyyy", t.date) : "تاريخ غير متوفر";
       }
-      
-      if (formValues.airline && t.airline && !containsKeyword(t.airline, formValues.airline)) continue;
-      
-      if (t.date) {
-        const legDate = normalizeDateForCompare(t.date);
-        if (legDate && wantDate && legDate !== wantDate) continue;
+      if (matchType === "FLIGHT_NO_MISMATCH") {
+        warning = "⚠️ اختلاف رقم رحلة";
+        mismatchReason = "اختلاف رقم رحلة";
+        originalValue = t.flightNumber || "رقم غير متوفر";
       }
 
-      const key = String(t.title || "غير معروف").trim();
+      if (formValues.airline && t.airline && !containsKeyword(t.airline, formValues.airline)) continue;
+
+      // Logic: Group by PNR to ensure 1 alert per PNR (ignoring buyer/title)
+      let key = t.pnr;
+
+      // Logic: Separate by time if available
+      if (t.time) {
+        key = `${key}__${t.time}`;
+      }
+
       const list = map.get(key) ?? [];
-      
+
       if (!list.find((ps) => ps.pnr === t.pnr)) {
         list.push({
           pnr: t.pnr,
+          title: t.title || "بدون عنوان",
           supplier: String(t.supplier || "غير معروف"),
           apiAirline: t.airline,
           booking_status: t.booking_status,
+          warning,
+          mismatchReason,
+          originalValue,
+          time: t.time
         });
       }
       map.set(key, list);
@@ -302,22 +303,33 @@ export default function Index() {
 
   const groupedNotifications = useMemo(() => {
     const items: any[] = [];
-    for (const [groupName, pnrsSuppliers] of matchedByTitle.entries()) {
-      const bySupplier = new Map<string, { pnrs: string[]; apiAirline?: string; booking_status?: string }>();
+    for (const [groupKey, pnrsSuppliers] of matchedByTitle.entries()) {
+      const bySupplier = new Map<string, { pnrs: string[]; title: string; apiAirline?: string; booking_status?: string; warnings: Set<string>; mismatchDetails: { reason: string; value: string }[]; time?: string }>();
       const supplierOrder: string[] = [];
-      
-      for (const { pnr, supplier: s, apiAirline, booking_status } of pnrsSuppliers) {
+
+      for (const { pnr, title, supplier: s, apiAirline, booking_status, warning, mismatchReason, originalValue, time } of pnrsSuppliers) {
+        // Filter out mismatches if showMismatches is false
+        if (!showMismatches && warning) continue;
+
         const sup = s || "غير معروف";
         if (!bySupplier.has(sup)) {
-          bySupplier.set(sup, { pnrs: [], apiAirline, booking_status });
+          bySupplier.set(sup, { pnrs: [], title, apiAirline, booking_status, warnings: new Set(), mismatchDetails: [], time });
           supplierOrder.push(sup);
         }
-        bySupplier.get(sup)!.pnrs.push(pnr);
+        const entry = bySupplier.get(sup)!;
+        entry.pnrs.push(pnr);
+        if (warning) entry.warnings.add(warning);
+        if (mismatchReason && originalValue) {
+          entry.mismatchDetails.push({ reason: mismatchReason, value: originalValue });
+        }
       }
 
       for (const sup of supplierOrder) {
-        const { pnrs: list, apiAirline, booking_status } = bySupplier.get(sup)!;
-        
+        const { pnrs: list, title, apiAirline, booking_status, warnings, mismatchDetails, time } = bySupplier.get(sup)!;
+
+        // If all PNRs were filtered out for this supplier, skip
+        if (list.length === 0) continue;
+
         const actualAirline = apiAirline || formValues.airline;
         const previewLines = basePreview.split("\n");
         const updatedPreview = previewLines
@@ -329,27 +341,41 @@ export default function Index() {
         const note = (supplierNotes[sup] || DEFAULT_SUPPLIER_NOTE).trim();
 
         for (const p of list) lines.push(`*رقم الحجز (PNR) : ${p}*`);
+
+        // Add warnings if any
+        if (warnings.size > 0) {
+          lines.push("");
+          lines.push(Array.from(warnings).join(" | "));
+        }
+
         lines.push("");
-        
+
         // Only append note if selected
         if (selectedSuppliers[sup] && note) {
           lines.push(note);
         }
-        
-        lines.push("", sup); // Signature
+
+        // Signature: Use the form value (user input) if available, otherwise fallback to supplier name
+        lines.push("", formValues.supplier || sup);
+
+        // Construct display title: Title__Time
+        const displayTitle = time ? `${title}__${time}` : title;
 
         items.push({
-          id: `${groupName}__${sup}`,
-          groupName,
+          id: `${groupKey}__${sup}`,
+          groupName: displayTitle,
           supplier: sup,
           pnrs: list,
           body: lines.join("\n"),
           booking_status: booking_status,
+          hasMismatch: warnings.size > 0,
+          mismatchDetails: mismatchDetails.length > 0 ? mismatchDetails[0] : null, // Take the first mismatch detail for display
+          time
         });
       }
     }
     return items;
-  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes]);
+  }, [matchedByTitle, basePreview, selectedSuppliers, supplierNotes, formValues.supplier, showMismatches]);
 
   const supplierStats = useMemo(() => {
     const stats = new Map<string, { pnrCount: number; notifications: number }>();
@@ -365,9 +391,23 @@ export default function Index() {
   }, [groupedNotifications]);
 
   const filteredNotifications = useMemo(() => {
-    if (!selectedSupplierFilter) return groupedNotifications;
-    return groupedNotifications.filter((item) => item.supplier === selectedSupplierFilter);
-  }, [groupedNotifications, selectedSupplierFilter]);
+    let result = groupedNotifications;
+    if (selectedSupplierFilter) {
+      result = result.filter((item) => item.supplier === selectedSupplierFilter);
+    }
+    if (selectedTimeFilter) {
+      result = result.filter((item) => item.time === selectedTimeFilter);
+    }
+    return result;
+  }, [groupedNotifications, selectedSupplierFilter, selectedTimeFilter]);
+
+  const availableTimes = useMemo(() => {
+    const times = new Set<string>();
+    for (const item of groupedNotifications) {
+      if (item.time) times.add(item.time);
+    }
+    return Array.from(times).sort();
+  }, [groupedNotifications]);
 
   // --- Actions ---
   const copy = async (text: string) => {
@@ -404,24 +444,34 @@ export default function Index() {
     }
     try {
       setAiLoading(true);
+      setValue("airline", "");
+      setValue("flightNumber", "");
+      setValue("date", "");
+      setValue("origin", "");
+      setValue("destination", "");
+      setValue("oldTime", "");
+      setValue("newTime", "");
+      setValue("type", "delay");
+      setValue("newFlightNumber", "");
+      setValue("newAirline", "");
       setAiTags([]);
       setTranslatedText("");
-      
+
       const res = await fetch("/api/ai/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: aiText,
-          apiKey: geminiKey || undefined,
-          model: geminiModel || undefined,
+          apiKey: settings.geminiKey || undefined,
+          model: settings.geminiModel || undefined,
           includeTranslation: true,
         }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data?.message || "فشل التحليل");
-      
+
       const d = data.data || {};
-      
+
       if (d.airline) setValue("airline", d.airline);
       if (d.flightNumber) {
         const num = String(d.flightNumber).match(/(\d{2,})/);
@@ -452,7 +502,7 @@ export default function Index() {
 
   // API Fetch
   const fetchFromApi = async () => {
-    if (!apiToken) {
+    if (!settings.apiToken) {
       setSettingsOpen(true);
       toast({ title: "مطلوب التوكن", description: "أدخل Bearer Token في الإعدادات" });
       return;
@@ -460,8 +510,8 @@ export default function Index() {
     setIsFetchingApi(true);
     try {
       const payload = {
-        url: apiUrl,
-        token: apiToken,
+        url: settings.apiUrl,
+        token: settings.apiToken,
         params: {
           pagination: { page: 1, perpage: 100 },
           query: {
@@ -483,16 +533,16 @@ export default function Index() {
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data?.message || "فشل الطلب");
-      
+
       const parsed = parseTrips(JSON.stringify(data));
       setTrips(parsed);
-      
+
       // Reset
       setHiddenGroups({});
       setCopiedGroups({});
       setDeliveredGroups({});
       setEditedBodies({});
-      
+
       toast({ title: "تم الجلب", description: `${parsed.length} رحلة` });
     } catch (e: any) {
       toast({ title: "خطأ في الجلب", description: e?.message, variant: "destructive" });
@@ -511,40 +561,24 @@ export default function Index() {
         </div>
         <div className="flex items-center gap-2">
           {history.length > 0 && (
-             <Badge variant="secondary" className="hidden sm:flex">
-               {history.length} تبليغ محفوظ
-             </Badge>
+            <Badge variant="secondary" className="hidden sm:flex">
+              {history.length} تبليغ محفوظ
+            </Badge>
           )}
-          <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon"><Settings className="w-4 h-4" /></Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>الإعدادات</DialogTitle></DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">API URL</label>
-                  <Input value={apiUrl} onChange={e => setApiUrl(e.target.value)} dir="ltr" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Bearer Token</label>
-                  <Input type="password" value={apiToken} onChange={e => setApiToken(e.target.value)} dir="ltr" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Gemini API Key</label>
-                  <Input type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} dir="ltr" />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={() => setSettingsOpen(false)}>حفظ</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" size="icon" onClick={() => setSettingsOpen(true)}>
+            <Settings className="w-4 h-4" />
+          </Button>
+          <SettingsDialog
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            currentSettings={settings}
+            onSave={updateSettings}
+          />
         </div>
       </div>
 
       <div className="container mx-auto p-4 md:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6">
-        
+
         {/* LEFT COLUMN: Configuration & Input */}
         <div className="xl:col-span-4 space-y-6">
           {/* AI Parsing Card */}
@@ -557,40 +591,39 @@ export default function Index() {
               <CardDescription>الصق النص لاستخراج البيانات تلقائياً</CardDescription>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
-              <Textarea 
-                className="min-h-[100px] resize-none text-sm" 
+              <Textarea
+                className="min-h-[100px] resize-none text-sm"
                 placeholder="ألصق نص التبليغ هنا (فارسي، إنجليزي...)"
                 value={aiText}
                 onChange={e => setAiText(e.target.value)}
                 dir="auto"
               />
-              
+
               {/* Translation Display */}
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Languages className="w-3 h-3" />
                   الترجمة (تلقائية)
                 </Label>
-                <Textarea 
-                  className="min-h-[80px] resize-none text-sm bg-slate-50 text-slate-600" 
-                  placeholder="الترجمة ستظهر هنا..."
-                  value={translatedText}
-                  readOnly
+                <div
+                  className="min-h-[80px] w-full rounded-md border border-input bg-slate-50 px-3 py-2 text-sm text-slate-600 shadow-sm whitespace-pre-wrap"
                   dir="rtl"
-                />
+                >
+                  {translatedText || "الترجمة ستظهر هنا..."}
+                </div>
               </div>
 
               {aiTags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {aiTags.map((t, i) => (
-                    <Badge key={i} variant="outline" className="text-[10px] px-1 py-0 bg-white">{t}</Badge>
+                    <Badge key={i} variant="outline" className="text-sm px-2 py-1 bg-white border-indigo-200 text-indigo-700 shadow-sm">{t}</Badge>
                   ))}
                 </div>
               )}
               <div className="flex gap-2">
-                <Button 
-                  onClick={parseWithGemini} 
-                  disabled={aiLoading} 
+                <Button
+                  onClick={parseWithGemini}
+                  disabled={aiLoading}
                   className="w-full bg-indigo-600 hover:bg-indigo-700"
                   size="sm"
                 >
@@ -608,15 +641,15 @@ export default function Index() {
             <CardContent>
               <Form {...form}>
                 <form className="space-y-4">
-                  {/* Row 1: Route */}
+                  {/* Row 1: Origin & Dest & Date & Flight & Airline (Merged) */}
                   <div className="flex items-end gap-2">
                     <FormField control={form.control} name="origin" render={({ field }) => (
-                      <FormItem className="flex-1">
+                      <FormItem className="w-24 flex-none">
                         <FormLabel className="text-xs">من</FormLabel>
-                        <FormControl><Input {...field} className="uppercase" maxLength={3} dir="ltr" /></FormControl>
+                        <FormControl><Input {...field} className="uppercase text-center font-bold tracking-wider shadow-sm" maxLength={3} dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
-                    <Button type="button" variant="ghost" size="icon" className="mb-1" onClick={() => {
+                    <Button type="button" variant="ghost" size="icon" className="mb-1 shrink-0 text-muted-foreground" onClick={() => {
                       const o = formValues.origin;
                       setValue("origin", formValues.destination);
                       setValue("destination", o);
@@ -624,112 +657,112 @@ export default function Index() {
                       <ArrowLeftRight className="w-4 h-4" />
                     </Button>
                     <FormField control={form.control} name="destination" render={({ field }) => (
-                      <FormItem className="flex-1">
+                      <FormItem className="w-24 flex-none">
                         <FormLabel className="text-xs">إلى</FormLabel>
-                        <FormControl><Input {...field} className="uppercase" maxLength={3} dir="ltr" /></FormControl>
+                        <FormControl><Input {...field} className="uppercase text-center font-bold tracking-wider shadow-sm" maxLength={3} dir="ltr" /></FormControl>
                       </FormItem>
                     )} />
-                  </div>
-
-                  {/* Row 2: Date & Airline */}
-                  <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="date" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex-1">
                         <FormLabel className="text-xs">التاريخ (ميلادي)</FormLabel>
-                        <FormControl><Input type="date" {...field} dir="ltr" /></FormControl>
+                        <FormControl><Input type="date" {...field} dir="ltr" className="text-center shadow-sm" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="flightNumber" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="w-32 flex-none">
                         <FormLabel className="text-xs">رقم الرحلة</FormLabel>
-                        <FormControl><Input {...field} dir="ltr" /></FormControl>
+                        <FormControl><Input {...field} dir="ltr" className="font-mono shadow-sm" /></FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="airline" render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel className="text-xs">شركة الطيران</FormLabel>
+                        <FormControl><Input {...field} dir="auto" className="shadow-sm" /></FormControl>
                       </FormItem>
                     )} />
                   </div>
 
-                  <FormField control={form.control} name="airline" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">شركة الطيران</FormLabel>
-                      <FormControl><Input {...field} dir="auto" /></FormControl>
-                    </FormItem>
-                  )} />
-
-                  <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border">
+                  {/* Row 3: Times */}
+                  <div className="flex gap-3 bg-slate-50 p-3 rounded-lg border items-end">
                     <FormField control={form.control} name="oldTime" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex-1">
                         <FormLabel className="text-xs">الوقت القديم</FormLabel>
-                        <FormControl><Input {...field} placeholder="HH:MM" dir="ltr" /></FormControl>
+                        <FormControl><Input {...field} placeholder="HH:MM" dir="ltr" className="text-center font-mono shadow-sm" /></FormControl>
                       </FormItem>
                     )} />
+                    <ArrowLeftRight className="w-4 h-4 mb-3 text-slate-400" />
                     <FormField control={form.control} name="newTime" render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex-1">
                         <FormLabel className="text-xs">الوقت الجديد</FormLabel>
-                        <FormControl><Input {...field} placeholder="HH:MM" dir="ltr" /></FormControl>
+                        <FormControl><Input {...field} placeholder="HH:MM" dir="ltr" className="text-center font-mono shadow-sm" /></FormControl>
                       </FormItem>
                     )} />
                   </div>
 
-                  <FormField control={form.control} name="type" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>نوع التبليغ</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="text-right" dir="rtl">
-                            <SelectValue placeholder="اختر النوع" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent dir="rtl">
-                          <SelectItem value="delay">تأخير (Delay)</SelectItem>
-                          <SelectItem value="advance">تقديم (Advance)</SelectItem>
-                          <SelectItem value="cancel">إلغاء (Cancel)</SelectItem>
-                          <SelectItem value="number_change">تغيير رقم (Num Change)</SelectItem>
-                          <SelectItem value="number_time_delay">رقم + وقت (تأخير)</SelectItem>
-                          <SelectItem value="number_time_advance">رقم + وقت (تقديم)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )} />
+                  {/* Row 4: Type & Signature */}
+                  <div className="flex gap-3">
+                    <FormField control={form.control} name="type" render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>نوع التبليغ</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="text-right shadow-sm" dir="rtl">
+                              <SelectValue placeholder="اختر النوع" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent dir="rtl">
+                            <SelectItem value="delay">تأخير (Delay)</SelectItem>
+                            <SelectItem value="advance">تقديم (Advance)</SelectItem>
+                            <SelectItem value="cancel">إلغاء (Cancel)</SelectItem>
+                            <SelectItem value="number_change">تغيير رقم (Num Change)</SelectItem>
+                            <SelectItem value="number_time_delay">رقم + وقت (تأخير)</SelectItem>
+                            <SelectItem value="number_time_advance">رقم + وقت (تقديم)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+
+                    <FormField control={form.control} name="supplier" render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel className="text-xs">التوقيع</FormLabel>
+                        <FormControl><Input {...field} dir="auto" className="shadow-sm" /></FormControl>
+                      </FormItem>
+                    )} />
+                  </div>
 
                   {/* Conditional Fields */}
                   {(formValues.type.includes("number") || formValues.type === "cancel") && (
-                     <div className="grid grid-cols-2 gap-3 animate-in fade-in zoom-in duration-300">
-                        <FormField control={form.control} name="newFlightNumber" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">رقم الرحلة الجديد</FormLabel>
-                            <FormControl><Input {...field} dir="ltr" /></FormControl>
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="newAirline" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">الطيران الجديد</FormLabel>
-                            <FormControl><Input {...field} dir="auto" /></FormControl>
-                          </FormItem>
-                        )} />
-                     </div>
+                    <div className="grid grid-cols-2 gap-3 animate-in fade-in zoom-in duration-300">
+                      <FormField control={form.control} name="newFlightNumber" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">رقم الرحلة الجديد</FormLabel>
+                          <FormControl><Input {...field} dir="ltr" className="shadow-sm" /></FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="newAirline" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">الطيران الجديد</FormLabel>
+                          <FormControl><Input {...field} dir="auto" className="shadow-sm" /></FormControl>
+                        </FormItem>
+                      )} />
+                    </div>
                   )}
-
-                  <FormField control={form.control} name="supplier" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">التوقيع</FormLabel>
-                      <FormControl><Input {...field} dir="auto" /></FormControl>
-                    </FormItem>
-                  )} />
                 </form>
               </Form>
             </CardContent>
             <CardFooter className="flex-col gap-3">
-               <Button 
-                 onClick={fetchFromApi} 
-                 disabled={isFetchingApi} 
-                 variant="secondary" 
-                 className="w-full"
-               >
-                 {isFetchingApi ? "جاري البحث..." : "بحث ومطابقة الرحلات (API)"}
-               </Button>
-               <div className="text-xs text-muted-foreground text-center" dir="rtl">
-                 سيقوم بالبحث عن {formValues.flightNumber} بتاريخ {formValues.date}
-               </div>
+              <Button
+                onClick={fetchFromApi}
+                disabled={isFetchingApi || !formValues.flightNumber || !formValues.date}
+                variant="secondary"
+                className="w-full shadow-sm"
+              >
+                {isFetchingApi ? "جاري البحث..." : "بحث ومطابقة الرحلات (API)"}
+              </Button>
+              <div className="text-xs text-muted-foreground text-center" dir="rtl">
+                سيقوم بالبحث عن {formValues.flightNumber} بتاريخ {formValues.date}
+              </div>
             </CardFooter>
           </Card>
         </div>
@@ -745,7 +778,7 @@ export default function Index() {
 
             {/* GROUPED NOTIFICATIONS */}
             <TabsContent value="grouped" className="space-y-4 mt-4">
-              
+
               {/* 1. SUPPLIER NOTES SECTION */}
               {activeSuppliers.length > 0 && (
                 <Card className="border-dashed border-slate-300 bg-slate-50/50">
@@ -756,15 +789,15 @@ export default function Index() {
                     {activeSuppliers.map((sup) => (
                       <div key={sup} className="flex flex-col gap-2 p-3 bg-white border rounded-lg shadow-sm">
                         <div className="flex items-center gap-2">
-                          <Checkbox 
-                            id={`sup-${sup}`} 
+                          <Checkbox
+                            id={`sup-${sup}`}
                             checked={!!selectedSuppliers[sup]}
                             onCheckedChange={(checked) => setSelectedSuppliers(prev => ({ ...prev, [sup]: !!checked }))}
                           />
                           <Label htmlFor={`sup-${sup}`} className="font-semibold cursor-pointer">{sup}</Label>
                         </div>
                         {selectedSuppliers[sup] && (
-                          <Textarea 
+                          <Textarea
                             placeholder="اكتب ملاحظة لهذا المورد (ستضاف للتبليغ)..."
                             value={supplierNotes[sup] ?? DEFAULT_SUPPLIER_NOTE}
                             onChange={e => setSupplierNotes(prev => ({ ...prev, [sup]: e.target.value }))}
@@ -779,46 +812,84 @@ export default function Index() {
               )}
 
               {/* 2. FILTERS */}
-              <div className="flex flex-wrap gap-2 pb-2">
-                <Button 
-                  variant={selectedSupplierFilter === null ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedSupplierFilter(null)}
-                >
-                  الكل
-                </Button>
-                {Array.from(supplierStats.entries()).map(([sup, stats]) => (
+              <div className="flex flex-col gap-3 pb-2">
+                <div className="flex items-center gap-2 bg-yellow-50 p-2 rounded-md border border-yellow-200">
+                  <Checkbox
+                    id="show-mismatches"
+                    checked={showMismatches}
+                    onCheckedChange={(c) => setShowMismatches(!!c)}
+                  />
+                  <Label htmlFor="show-mismatches" className="text-sm cursor-pointer select-none">
+                    عرض الرحلات غير المطابقة (اختلاف تاريخ / رقم رحلة)
+                  </Label>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
                   <Button
-                    key={sup}
-                    variant={selectedSupplierFilter === sup ? "default" : "outline"}
+                    variant={selectedSupplierFilter === null ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setSelectedSupplierFilter(sup)}
-                    className="gap-2"
+                    onClick={() => setSelectedSupplierFilter(null)}
                   >
-                    {sup}
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1">{stats.pnrCount}</Badge>
+                    الكل
                   </Button>
-                ))}
+                  {availableTimes.length > 0 && (
+                    <div className="h-8 w-px bg-slate-300 mx-1" />
+                  )}
+                  {availableTimes.map((time) => (
+                    <Button
+                      key={time}
+                      variant={selectedTimeFilter === time ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedTimeFilter(selectedTimeFilter === time ? null : time)}
+                      className="gap-2"
+                    >
+                      🕒 {time}
+                    </Button>
+                  ))}
+                  <div className="h-8 w-px bg-slate-300 mx-1" />
+                  {Array.from(supplierStats.entries()).map(([sup, stats]) => (
+                    <Button
+                      key={sup}
+                      variant={selectedSupplierFilter === sup ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedSupplierFilter(sup)}
+                      className="gap-2"
+                    >
+                      {sup}
+                      <Badge variant="secondary" className="text-[10px] h-5 px-1">{stats.pnrCount}</Badge>
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               {/* 3. NOTIFICATION CARDS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredNotifications.map((bn) => (
-                  <Card 
-                    key={bn.id} 
+                  <Card
+                    key={bn.id}
                     className={cn(
                       "transition-all duration-200",
                       hiddenGroups[bn.id] && "opacity-40 grayscale",
-                      deliveredGroups[bn.id] ? "ring-2 ring-green-500 bg-green-50/30" : 
-                      copiedGroups[bn.id] ? "ring-1 ring-orange-300 bg-orange-50/20" : ""
+                      bn.hasMismatch ? "bg-red-50 border-red-200" :
+                        deliveredGroups[bn.id] ? "ring-2 ring-green-500 bg-green-50/30" :
+                          copiedGroups[bn.id] ? "ring-1 ring-orange-300 bg-orange-50/20" : ""
                     )}
                   >
                     <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
                       <div>
                         <CardTitle className="text-base font-bold">{bn.groupName}</CardTitle>
-                        <CardDescription className="text-xs mt-1 flex items-center gap-2">
-                          {bn.supplier}
-                          <Badge variant="outline">{bn.pnrs.length} PNR</Badge>
+                        <CardDescription className="text-xs mt-1 flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            {bn.supplier}
+                            <Badge variant="outline">{bn.pnrs.length} PNR</Badge>
+                            {bn.time && <Badge variant="secondary" className="font-mono">{bn.time}</Badge>}
+                          </div>
+                          {bn.hasMismatch && bn.mismatchDetails && (
+                            <span className="text-red-600 font-semibold flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              {bn.mismatchDetails.reason}
+                            </span>
+                          )}
                         </CardDescription>
                       </div>
                       {bn.booking_status && (
@@ -831,69 +902,79 @@ export default function Index() {
                       )}
                     </CardHeader>
                     <CardContent className="pb-2">
-                      <Textarea 
-                        className="min-h-[180px] text-xs font-mono bg-white text-right"
+                      <Textarea
+                        className={cn(
+                          "min-h-[180px] text-xs font-mono bg-white text-right",
+                          bn.hasMismatch && "border-red-200 bg-red-50/50"
+                        )}
                         value={editedBodies[bn.id] ?? bn.body}
                         onChange={e => setEditedBodies(prev => ({ ...prev, [bn.id]: e.target.value }))}
                         dir="rtl"
                       />
                     </CardContent>
-                    <CardFooter className="pt-2 flex justify-between gap-2">
-                      <div className="flex gap-1">
-                        <Button 
-                          size="icon" 
-                          variant="ghost" 
-                          className="h-8 w-8 text-slate-400"
-                          onClick={() => setHiddenGroups(prev => ({ ...prev, [bn.id]: !prev[bn.id] }))}
-                        >
-                          {hiddenGroups[bn.id] ? <Search className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                      
-                      {/* RESTORED BUTTON LOGIC */}
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="secondary" 
-                          onClick={() => {
-                            const msg = editedBodies[bn.id] ?? bn.body;
-                            copy(msg);
-                            setCopiedGroups(prev => ({ ...prev, [bn.id]: true }));
-                          }}
-                        >
-                          <Copy className="w-3 h-3 mr-1" /> نسخ
-                        </Button>
+                    <CardFooter className="pt-2 flex flex-col gap-2">
+                      {bn.hasMismatch && bn.mismatchDetails && (
+                        <div className="w-full text-xs text-red-600 bg-red-100/50 p-2 rounded flex items-center justify-between">
+                          <span>القيمة الأصلية:</span>
+                          <span className="font-mono font-bold" dir="ltr">{bn.mismatchDetails.value}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between w-full gap-2">
+                        <div className="flex gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-slate-400"
+                            onClick={() => setHiddenGroups(prev => ({ ...prev, [bn.id]: !prev[bn.id] }))}
+                          >
+                            {hiddenGroups[bn.id] ? <Search className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
+                          </Button>
+                        </div>
 
-                        {deliveredGroups[bn.id] ? (
-                          <Button 
-                            size="sm" 
-                            disabled 
-                            className="bg-green-600 text-white hover:bg-green-600 opacity-100"
-                          >
-                            <CheckCircle2 className="w-3 h-3 mr-1" /> تم
-                          </Button>
-                        ) : copiedGroups[bn.id] ? (
-                          <Button 
+                        <div className="flex gap-2">
+                          <Button
                             size="sm"
-                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                            variant="secondary"
                             onClick={() => {
-                              saveToHistory(editedBodies[bn.id] ?? bn.body, `${bn.groupName} | ${bn.supplier}`);
-                              setDeliveredGroups(prev => ({ ...prev, [bn.id]: true }));
+                              const msg = editedBodies[bn.id] ?? bn.body;
+                              copy(msg);
+                              setCopiedGroups(prev => ({ ...prev, [bn.id]: true }));
                             }}
                           >
-                            تم التبليغ
+                            <Copy className="w-3 h-3 mr-1" /> نسخ
                           </Button>
-                        ) : (
-                          <Button 
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              saveToHistory(editedBodies[bn.id] ?? bn.body, `${bn.groupName} | ${bn.supplier}`);
-                            }}
-                          >
-                            حفظ
-                          </Button>
-                        )}
+
+                          {deliveredGroups[bn.id] ? (
+                            <Button
+                              size="sm"
+                              disabled
+                              className="bg-green-600 text-white hover:bg-green-600 opacity-100"
+                            >
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> تم
+                            </Button>
+                          ) : copiedGroups[bn.id] ? (
+                            <Button
+                              size="sm"
+                              className="bg-orange-500 hover:bg-orange-600 text-white"
+                              onClick={() => {
+                                saveToHistory(editedBodies[bn.id] ?? bn.body, `${bn.groupName} | ${bn.supplier}`);
+                                setDeliveredGroups(prev => ({ ...prev, [bn.id]: true }));
+                              }}
+                            >
+                              تم التبليغ
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                saveToHistory(editedBodies[bn.id] ?? bn.body, `${bn.groupName} | ${bn.supplier}`);
+                              }}
+                            >
+                              حفظ
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </CardFooter>
                   </Card>
@@ -915,7 +996,7 @@ export default function Index() {
                   <CardDescription>يستخدم للنسخ السريع دون تجميع PNR</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Textarea 
+                  <Textarea
                     className="min-h-[300px] font-mono text-right"
                     value={singleEdited}
                     onChange={e => {

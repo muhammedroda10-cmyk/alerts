@@ -55,6 +55,26 @@ function normalizeDateToISO(input?: string): string | undefined {
     mo = parseInt(m[2], 10),
     d = parseInt(m[3], 10);
 
+  // Handle 0000 year (Missing year placeholder for Gregorian dates)
+  if (y === 0) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    let calculatedYear = currentYear;
+
+    // Create a candidate date for the current year
+    const candidateDate = new Date(currentYear, mo - 1, d, 12, 0, 0);
+    const nowTime = now.getTime();
+
+    // Logic: If the date is more than 30 days in the past, assume it's for the next year.
+    // Flight notifications are typically for the future or very recent past.
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    if (candidateDate.getTime() < nowTime - thirtyDays) {
+      calculatedYear += 1;
+    }
+
+    return `${calculatedYear}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+  }
+
   // Allow Jalali (1300-1499) or Gregorian (1900-2999)
   if ((y >= 1300 && y <= 1499) || (y > 1900 && y < 3000)) {
     return `${y.toString().padStart(4, "0")}-${mo.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
@@ -85,19 +105,21 @@ async function callGeminiAPI(
   const preferred = msel
     ? [msel, msel.endsWith("-latest") ? msel : `${msel}-latest`]
     : [];
-  
+
   const models = [
     ...preferred,
     "gemini-2.5-flash",
+    "gemini-2.5-flash-latest",
+    "gemini-2.5-flash-lite",
     "gemini-2.0-flash",
-    "gemini-2.0-flash-latest",
-    "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
   ];
 
   const payload = {
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0 },
+    generationConfig: {
+      temperature: 0,
+    },
   } as const;
 
   let lastStatus = 500;
@@ -121,14 +143,14 @@ async function callGeminiAPI(
           lastBody = await r.text();
           // If 404/Not Found, try next model. Otherwise, if it's a server error, maybe retry?
           // For now, we treat NOT_FOUND as continue, others as potentially fatal but we try next model anyway just in case.
-           if (
-              !(
-                r.status === 404 ||
-                /NOT_FOUND|not found|unsupported/i.test(lastBody)
-              )
-            ) {
-             // Optional: break on strict auth errors, but continuing acts as a retry mechanism
-            }
+          if (
+            !(
+              r.status === 404 ||
+              /NOT_FOUND|not found|unsupported/i.test(lastBody)
+            )
+          ) {
+            // Optional: break on strict auth errors, but continuing acts as a retry mechanism
+          }
         }
       } catch (e) {
         // Network error, try next
@@ -171,7 +193,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     }
 
     // 2. Prepare Prompts for Split Execution
-    
+
     // A. Extraction Prompt (Strict JSON)
     const extractionInstruction = [
       "You are a flight analyst assistant.",
@@ -180,13 +202,18 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "Rules:",
       "- flightNumber: Only number",
       "- origin and destination MUST be airport IATA codes (exactly 3 uppercase letters, e.g., NJF, MHD), not city names. Deduce the correct IATA code when only city names are mentioned.",
-      "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
+      "- Date Rules:",
+      "  - Format: yyyy/MM/dd (forward slashes).",
+      "  - If the date is Jalali/Shamsi (e.g. months like Farvardin): Do NOT convert to Gregorian. If year is missing, use 1404.",
+      "  - If the date is Gregorian (e.g. 28-11 or November 28): If year is missing, use 0000 as the year (e.g. 0000/11/28). If year is present, use it.",
       "- time: HH:mm (24h).",
-      "- When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.",
+      "- airline: When you return airline Use IATA Airlines names only first airline name dont include air or airlines in it.If not present return empty string",
       "- Normalize digits to Western numerals.",
       "- type must be one of: delay, advance, cancel, number_change, number_time_delay, number_time_advance. If unknown, use delay if a new time is provided, else empty string.",
       "- If missing, use empty string.",
-      "Respond with only JSON, no explanations.",
+      "Respond with valid JSON only. Do not use markdown code blocks.",
+      "Example Output:",
+      "{ \"airline\": \"Mahan\", \"flightNumber\": \"123\", \"date\": \"2025/11/25\", \"origin\": \"IKA\", \"destination\": \"NJF\", \"type\": \"delay\", \"oldTime\": \"10:00\", \"newTime\": \"12:00\" }"
     ].join("\n");
 
     const extractionPrompt = `${extractionInstruction}\n\nText to extract:\n${parsed.text}`;
@@ -196,7 +223,10 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
       "You are a professional translator.",
       "Translate the text to Arabic.",
       "Translate the entire input text from its original language (Persian, English, etc.) into Arabic. Even if the text looks like Arabic (e.g. Persian), you MUST translate it to proper Arabic. ",
-      "- Use date format yyyy/MM/dd (forward slashes). Do NOT convert Jalali/Shamsi dates to Gregorian. If the date is Jalali (فروردین, etc.), return it in yyyy/MM/dd format as-is. **The current Shamsi year is 1404.** Apply this year if no year is present in the text.",
+      "- Date Rules:",
+      "  - Format: yyyy/MM/dd (forward slashes).",
+      "  - If the date is Jalali/Shamsi (e.g. months like Farvardin): Do NOT convert to Gregorian. If year is missing, use 1404.",
+      "  - If the date is Gregorian (e.g. 28-11 or November 28): If year is missing, use 0000 as the year (e.g. 0000/11/28). If year is present, use it.",
       "Maintain numbers and dates exactly as they appear.",
       "- tags: An array of short strings in ARABIC summarizing key info. Examples: ['تأخير', 'إلغاء', 'تغيير نوع طائرة','رحلة بديلة', 'آخر موعد للرد 10:00', 'تغيير مطار الانطلاق']. Extract deadlines if present.",
       "Respond with this JSON format ONLY:",
@@ -217,7 +247,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
 
     // Wait for all requests to finish
     const results = await Promise.all(promises);
-    
+
     const extractionRawText = results[0];
     const translationRawText = parsed.includeTranslation ? results[1] : "";
 
@@ -227,7 +257,7 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     const airline = String(obj.airline || "").trim();
     const flightNumber = String(obj.flightNumber || obj.flight_no || "").trim();
     const dateISO = normalizeDateToISO(String(obj.date || obj.flightDate || ""));
-    
+
     const toIata = (s: string): string => {
       const up = (s || "").trim().toUpperCase();
       if (/^[A-Z]{3}$/.test(up)) return up;
@@ -248,10 +278,10 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     let inferredType = rawType;
     const allowed = ["delay", "advance", "cancel", "number_change", "number_time_delay", "number_time_advance"];
     if (!allowed.includes(inferredType)) {
-        if (newFlightNumber && newTime) inferredType = "number_time_delay";
-        else if (newFlightNumber) inferredType = "number_change";
-        else if (newTime) inferredType = "delay";
-        else inferredType = "";
+      if (newFlightNumber && newTime) inferredType = "number_time_delay";
+      else if (newFlightNumber) inferredType = "number_change";
+      else if (newTime) inferredType = "delay";
+      else inferredType = "";
     }
 
     const result: any = {
@@ -276,11 +306,11 @@ export const handleGeminiParse: RequestHandler = async (req, res) => {
     }
 
     // 6. Return Result
-    return res.json({ 
-        data: result, 
-        // Optional: return raw outputs for debugging if needed
-        raw_extraction: extractionRawText, 
-        raw_translation: translationRawText 
+    return res.json({
+      data: result,
+      // Optional: return raw outputs for debugging if needed
+      raw_extraction: extractionRawText,
+      raw_translation: translationRawText
     });
 
   } catch (err: any) {

@@ -101,6 +101,20 @@ export function SettingsDialog({
               className="text-left ltr"
             />
           </div>
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="combinePnrs"
+              checked={formData.combinePnrs}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, combinePnrs: e.target.checked }))
+              }
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <Label htmlFor="combinePnrs" className="cursor-pointer">
+              تجميع PNRs لنفس المشتري
+            </Label>
+          </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
